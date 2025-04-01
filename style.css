@@ -1,0 +1,184 @@
+/* Basic Reset and Fullscreen Setup */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent body scrollbars */
+    /* --- GRADIENT ADDED --- */
+    background: radial-gradient(ellipse at top, #2e4a44, #1a1d21 70%); /* Dark teal/greenish top to dark base */
+    color: #e0e0e0; /* Light text */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#viewerContainer {
+    width: 100%;
+    height: 100%;
+    position: relative; /* Context for absolute positioning */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+     /* Gradient is now on body, container can be transparent or solid */
+    background-color: transparent;
+}
+
+/* Initial File Selector Screen (No change other than inheriting body gradient) */
+#fileSelector {
+    text-align: center;
+    padding: 40px;
+    /* Add a subtle background to make text pop against gradient if needed */
+    /* background-color: rgba(26, 29, 33, 0.5); */
+    /* border-radius: 15px; */
+}
+
+#fileSelector h1 {
+    color: #ffffff;
+    margin-bottom: 30px;
+    font-weight: 500;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4); /* Optional shadow for better readability */
+}
+
+.file-label {
+    background-color: #007bff; /* Blue accent like reference */
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px; /* Rounded button */
+    cursor: pointer;
+    display: inline-block;
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    border: none; /* Ensure no border interferes */
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    /* --- TRANSITION FOR BUTTON PRESS --- */
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.file-label:hover {
+    background-color: #0056b3;
+}
+
+/* --- BUTTON PRESS EFFECT --- */
+.file-label:active {
+    background-color: #004a9a; /* Darker shade when pressed */
+    transform: scale(0.97); /* Scale down slightly */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Reduce shadow */
+}
+
+
+input[type="file"] {
+    display: none; /* Hide default input */
+}
+
+.instructions {
+    font-size: 0.9em;
+    color: #ccc; /* Slightly brighter for contrast */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+
+/* Image Display - Make container itself the pannable area */
+#imageContainer {
+    width: 100%;
+    height: 100%; /* Take full container height */
+    position: absolute; /* Position within viewerContainer */
+    top: 0;
+    left: 0;
+    display: flex; /* Use flexbox to center the image initially */
+    justify-content: center;
+    align-items: center;
+    overflow: auto; /* Enable scrolling/panning for zoomed image */
+    cursor: grab; /* Default cursor for the container */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+#imageContainer:active {
+     cursor: grabbing; /* Show grabbing cursor when panning */
+}
+
+#comicPage {
+    display: block;
+    /* Let the container handle max-width/height for initial fit */
+    /* max-width: 100%; remove */
+    /* max-height: 100%; remove */
+    height: auto;     /* Maintain aspect ratio */
+    width: auto;      /* Maintain aspect ratio */
+    object-fit: contain;
+    /* --- Change cursor only when over the actual image, allow container clicks --- */
+    /* cursor: default; remove, handled by container */
+    transition: transform 0.15s ease-out;
+    transform-origin: center center; /* Zoom from center */
+    /* Prevent image itself from being draggable by browser */
+    user-select: none;
+    -webkit-user-drag: none;
+    /* Make image ignore pointer events so clicks go to container for navigation */
+    /* pointer-events: none; <-- This would disable panning ON the image, reconsider */
+    /* Let's try keeping pointer events on image for panning, but handle clicks on container */
+}
+
+/* Status Overlay (Loading/Error) - No changes */
+#statusOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(26, 29, 33, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+.status-message { /* ... */ }
+.status-message.error { /* ... */ }
+
+
+/* Controls Overlay - No major changes */
+#controlsOverlay {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(20, 22, 25, 0.85);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    z-index: 50;
+    opacity: 1;
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+    transform: translateY(0);
+    pointer-events: auto; /* Allow interaction when visible */
+}
+
+/* Auto-hide controls */
+#controlsOverlay.controls-hidden {
+    opacity: 0;
+    transform: translateY(100%);
+    pointer-events: none;
+}
+/* Show on hover/activity */
+#viewerContainer:hover #controlsOverlay,
+#controlsOverlay:hover,
+#controlsOverlay.controls-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+/* Control group styling - no changes */
+.control-group { /* ... */ }
+.filename-display { /* ... */ }
+.navigation span, .zoom-controls span { /* ... */ }
+button { /* ... */ }
+button:hover { /* ... */ }
+button:disabled { /* ... */ }
+
+/* Responsive adjustments - No changes */
+@media (max-width: 700px) { /* ... */ }
