@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBZ Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Include JSZip library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <div id="viewerContainer">
+        <!-- Area for initial file selection -->
+        <div id="fileSelector">
+             <h1>CBZ Viewer</h1>
+             <label for="fileInput" class="file-label">Open CBZ File</label>
+             <input type="file" id="fileInput" accept=".cbz" aria-label="Select CBZ file">
+             <p class="instructions">Select a .cbz file to start reading.</p>
+        </div>
+
+        <!-- Image Display Area -->
+        <div id="imageContainer" style="display: none;">
+             <img id="comicPage" src="" alt="Comic Page" />
+        </div>
+
+         <!-- Status Messages Overlay -->
+        <div id="statusOverlay" style="display: none;">
+            <div id="loadingIndicator" class="status-message">Loading...</div>
+            <div id="errorIndicator" class="status-message error" style="display: none;"></div>
+        </div>
+
+
+        <!-- Controls Overlay -->
+        <div id="controlsOverlay" style="display: none;" class="controls-hidden">
+             <div class="control-group filename-display">
+                 <span id="fileName">No file selected</span>
+             </div>
+             <div class="control-group navigation">
+                <button id="prevPage" aria-label="Previous Page">&lt; Prev</button>
+                <span id="pageIndicator">Page 0 / 0</span>
+                <button id="nextPage" aria-label="Next Page">Next &gt;</button>
+            </div>
+            <div class="control-group zoom-controls">
+                 <button id="zoomOut" aria-label="Zoom Out">-</button>
+                 <span id="zoomLevel">100%</span>
+                 <button id="zoomIn" aria-label="Zoom In">+</button>
+                 <button id="zoomFit" aria-label="Fit to Screen">Fit</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
