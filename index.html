@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist CBZ Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- JSZip library from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Panzoom library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Initial view remains the same -->
+        <div id="initialView">
+            <h1>Minimalist CBZ Viewer</h1>
+            <div id="fileSelector">
+                <label for="fileInput" class="file-label">Choose a .cbz file</label>
+                <input type="file" id="fileInput" accept=".cbz" aria-label="Select CBZ file">
+                <p id="status">No file selected.</p>
+            </div>
+        </div>
+
+        <!-- Viewer structure changes slightly -->
+        <div id="viewer" class="hidden">
+            <!-- Image container is now the primary element Panzoom might interact with -->
+            <div id="imageContainer">
+                 {/* The image that will be panned/zoomed */}
+                <img id="pageImage" src="#" alt="Comic Page">
+            </div>
+            {/* Navigation elements are now overlays */}
+            <div id="viewerUiOverlay">
+                <span id="pageInfo">Page 0 / 0</span>
+                <button id="closeButton" title="Close Comic (Esc)">Close</button>
+                 {/* Add explicit click zones, though JS will handle the logic */}
+                <div class="click-zone left-zone" title="Previous Page (Left Arrow)"></div>
+                <div class="click-zone right-zone" title="Next Page (Right Arrow)"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
