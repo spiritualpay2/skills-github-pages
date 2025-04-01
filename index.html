@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBZ Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="jszip.min.js"></script> <! -- Include JSZip library -->
+</head>
+<body>
+    <div class="header">
+        <div class="app-title">P-Stream</div> <! -- Example Title, change as needed -->
+        <div class="app-icons">
+            <div class="icon discord-icon">
+                <img src="discord-icon.png" alt="Discord"> <! -- Replace with your Discord icon -->
+            </div>
+            <div class="icon settings-icon">
+                <img src="settings-icon.png" alt="Settings"> <! -- Replace with your Settings icon -->
+            </div>
+        </div>
+        <div class="user-profile">
+            <div class="username">Macbook Air</div> <! -- Example username -->
+            <div class="profile-icon">
+                <img src="profile-icon.png" alt="Profile"> <! -- Replace with your profile icon -->
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="welcome-message">
+            What would you like to watch tonight? <! -- Change to "read" if more appropriate -->
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="🔍 What do you want to watch?"> <! -- Change to "read" -->
+        </div>
+        <div class="continue-reading-section"> <! -- Changed from "watching" to "reading" -->
+            <div class="section-title">
+                <span class="icon-container">
+                    <img src="continue-icon.png" alt="Continue Icon"> <! -- Replace with your continue icon -->
+                </span>
+                CONTINUE READING... <! -- Changed from "WATCHING" to "READING" -->
+            </div>
+            <div class="comic-previews" id="comic-previews">
+                </div>
+        </div>
+
+        <div class="comic-viewer" id="comic-viewer" style="display: none;">
+            <div class="navigation-bar">
+                <button id="prev-page" class="nav-button">←</button>
+                <button id="next-page" class="nav-button">→</button>
+                <button id="zoom-in" class="nav-button">+</button>
+                <button id="zoom-out" class="nav-button">-</button>
+                <button id="close-viewer" class="nav-button">✕</button>
+            </div>
+            <div id="comic-page-container">
+                <img id="comic-page" src="" alt="Comic Page">
+            </div>
+        </div>
+
+        <input type="file" id="cbz-input" accept=".cbz" style="display: none;"> <! -- Hidden file input -->
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
