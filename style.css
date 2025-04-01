@@ -1,0 +1,186 @@
+/* --- Base and Theme --- */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    /* Use flexbox to center the initial content */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Vertically center */
+    min-height: 100vh;
+    /* Dark theme with teal radial gradient */
+    background-color: #111; /* Fallback */
+    background-image: radial-gradient(circle at center, #0f4a4e 0%, #111111 75%);
+    color: #f0f0f0; /* Light text color */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.container {
+    /* Removed background/padding - moved to specific sections */
+    text-align: center;
+    max-width: 90vw; /* Limit container width */
+    width: 800px; /* Default max width */
+    /* Ensure container doesn't prevent body centering */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* --- Initial View (Centering) --- */
+#initialView {
+    display: flex; /* Use flex to keep it visible */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #1f1f1f; /* Darker box for initial view */
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+#initialView.hidden {
+    display: none; /* Hide when viewer is active */
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 30px; /* Space below title */
+    color: #eee; /* Lighter heading */
+    font-weight: 300; /* Lighter font */
+    letter-spacing: 1px;
+}
+
+/* --- File Selector Styling (Button) --- */
+#fileSelector {
+    /* Remove old box styling */
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+}
+
+.file-label { /* This is our styled button */
+    display: inline-block;
+    padding: 15px 35px; /* Larger padding */
+    background-color: #20c997; /* Teal color */
+    color: #111; /* Dark text on teal */
+    font-weight: bold;
+    border: none;
+    border-radius: 25px; /* Rounded rectangle */
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease; /* Added box-shadow transition */
+    font-size: 1.1em;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.file-label:hover {
+    background-color: #1aa882; /* Darker teal on hover */
+    transform: translateY(-2px); /* Slight lift */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.file-label:active {
+    background-color: #179a75; /* Even darker teal when clicked */
+    transform: translateY(0px); /* Push down slightly */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+#fileInput {
+    display: none; /* Keep the actual input hidden */
+}
+
+#status {
+    margin-top: 25px; /* More space above status */
+    color: #aaa; /* Lighter grey for status */
+    font-style: italic;
+    min-height: 1.2em; /* Reserve space */
+}
+
+/* --- Viewer --- */
+#viewer {
+    margin-top: 20px;
+    width: 100%; /* Take up container width */
+    background-color: #2a2a2a; /* Dark background for viewer area */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#viewer.hidden {
+    display: none;
+}
+
+#imageContainer {
+    margin-bottom: 15px;
+    background-color: #1f1f1f; /* Slightly different dark for image bg */
+    padding: 10px;
+    border-radius: 4px;
+    min-height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#pageImage {
+    max-width: 100%;
+    max-height: 75vh;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* --- Navigation (Dark Theme) --- */
+#navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#navigation button, #closeButton {
+    padding: 10px 18px; /* Slightly larger buttons */
+    background-color: #555; /* Dark grey buttons */
+    color: #eee;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    min-width: 90px;
+    font-weight: bold;
+}
+
+#navigation button:hover, #closeButton:hover {
+    background-color: #6c757d; /* Lighter grey on hover */
+    transform: translateY(-1px);
+}
+
+#navigation button:active, #closeButton:active {
+    transform: translateY(0px);
+}
+
+
+#navigation button:disabled {
+    background-color: #444; /* Darker disabled */
+    color: #888;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+}
+
+#pageInfo {
+    font-weight: bold;
+    color: #ccc; /* Light grey page info */
+    min-width: 100px;
+    text-align: center;
+}
+
+#closeButton {
+     background-color: #a03d3d; /* Muted red for dark theme */
+}
+#closeButton:hover {
+     background-color: #b84a4a;
+}
+
+/* Utility remains same */
+.hidden {
+    display: none;
+}
