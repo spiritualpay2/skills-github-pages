@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBZ Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        #canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        #controls {
+            padding: 10px;
+            background: #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button {
+            background: #3a3a3a;
+            border: none;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #4a4a4a;
+        }
+        #file-input {
+            display: none;
+        }
+        label {
+            background: #3a3a3a;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        label:hover {
+            background: #4a4a4a;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <img id="canvas" alt="CBZ Page">
+    </div>
+    <div id="controls">
+        <button id="prev">Previous</button>
+        <span id="page-info">No file loaded</span>
+        <button id="next">Next</button>
+        <input type="file" id="file-input" accept=".cbz">
+        <label for="file-input">Load CBZ</label>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        const fileInput = document.getElementById('file-input');
+        const pageInfo = document.getElementById('page-info');
+
+        let currentPage = 0;
+        let images = [];
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file || !file.name.endsWith('.cbz')) return;
+
+            images = [];
+            currentPage = 0;
+            canvas.src = '';
+            pageInfo.textContent = 'Loading...';
+
+            const zip = await JSZip.loadAsync(file);
+            const imagePromises = [];
+
+            zip.forEach((relativePath, zipEntry) => {
+                if (zipEntry.dir) return;
+                if (/\.(jpe?g|png|gif|webp)$/i.test(relativePath)) {
+                    imagePromises.push(
+                        zipEntry.async('blob').then(blob => ({
+                            name: relativePath,
+                            blob: URL.createObjectURL(blob)
+                        }))
+                    );
+                }
+            });
+
+            images = (await Promise.all(imagePromises)).sort((a, b) => a.name.localeCompare(b.name));
+            if (images.length > 0) {
+                loadPage(0);
+            } else {
+                pageInfo.textContent = 'No images found in CBZ';
+            }
+        });
+
+        function loadPage(page) {
+            if (page < 0 || page >= images.length) return;
+            currentPage = page;
+            canvas.src = images[page].blob;
+            pageInfo.textContent = `Page ${page + 1} of ${images.length}`;
+            prevBtn.disabled = page === 0;
+            nextBtn.disabled = page === images.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => loadPage(currentPage - 1));
+        nextBtn.addEventListener('click', () => loadPage(currentPage + 1));
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') loadPage(currentPage - 1);
+            if (e.key === 'ArrowRight') loadPage(currentPage + 1);
+        });
+    </script>
+</body>
+</html>
