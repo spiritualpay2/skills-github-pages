@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple CBZ Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Include JSZip library (download from https://stuk.github.io/jszip/ or use a CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Or download jszip.min.js and reference it locally: <script src="jszip.min.js"></script> -->
+</head>
+<body>
+    <div class="container">
+        <h1>Simple CBZ Viewer</h1>
+
+        <div class="controls">
+            <label for="fileInput" class="file-label">Open CBZ File</label>
+            <input type="file" id="fileInput" accept=".cbz" aria-label="Select CBZ file">
+            <span id="fileName">No file selected</span>
+        </div>
+
+        <div id="viewer" class="viewer-area" style="display: none;">
+            <div id="loadingIndicator" class="status-message">Loading...</div>
+            <div id="errorIndicator" class="status-message error" style="display: none;"></div>
+
+            <div class="image-container">
+                 <img id="comicPage" src="" alt="Comic Page" />
+            </div>
+
+            <div class="navigation">
+                <button id="prevPage" aria-label="Previous Page">&lt; Prev</button>
+                <span id="pageIndicator">Page 0 / 0</span>
+                <button id="nextPage" aria-label="Next Page">Next &gt;</button>
+            </div>
+             <div class="zoom-controls">
+                 <button id="zoomIn" aria-label="Zoom In">+</button>
+                 <button id="zoomOut" aria-label="Zoom Out">-</button>
+                 <button id="zoomFit" aria-label="Fit to Screen">Fit</button>
+                 <span id="zoomLevel">Zoom: 100%</span>
+            </div>
+        </div>
+         <div class="instructions">
+            <p><strong>Note:</strong> This viewer works with <strong>.cbz</strong> files (ZIP archives). CBR (RAR) files are not directly supported due to browser limitations.</p>
+         </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
