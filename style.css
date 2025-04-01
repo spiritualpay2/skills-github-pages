@@ -1,0 +1,131 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align items to the top */
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 90vw; /* Limit container width */
+    width: 800px; /* Default width */
+}
+
+h1 {
+    margin-top: 0;
+    color: #555;
+}
+
+/* --- File Selector --- */
+#fileSelector {
+    margin-top: 20px;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    background-color: #fafafa;
+}
+
+.file-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.file-label:hover {
+    background-color: #0056b3;
+}
+
+#fileInput {
+    display: none; /* Hide the default input */
+}
+
+#status {
+    margin-top: 15px;
+    color: #666;
+    font-style: italic;
+}
+
+/* --- Viewer --- */
+#viewer {
+    margin-top: 20px;
+}
+
+#imageContainer {
+    margin-bottom: 15px;
+    background-color: #eee; /* Slight background for image area */
+    padding: 10px;
+    border-radius: 4px;
+    min-height: 300px; /* Prevent collapse before image loads */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#pageImage {
+    max-width: 100%;
+    max-height: 75vh; /* Limit image height */
+    height: auto;   /* Maintain aspect ratio */
+    display: block; /* Remove extra space below image */
+    margin: 0 auto; /* Center image if smaller than container */
+}
+
+/* --- Navigation --- */
+#navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#navigation button, #closeButton {
+    padding: 8px 15px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 80px; /* Ensure buttons have some width */
+}
+
+#navigation button:hover, #closeButton:hover {
+    background-color: #5a6268;
+}
+
+#navigation button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+#pageInfo {
+    font-weight: bold;
+    color: #333;
+    min-width: 80px; /* Give it space */
+    text-align: center;
+}
+
+#closeButton {
+     background-color: #dc3545; /* Red for close */
+}
+#closeButton:hover {
+     background-color: #c82333;
+}
+
+/* --- Utility --- */
+.hidden {
+    display: none;
+}
