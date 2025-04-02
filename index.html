@@ -3,72 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Comic Viewer</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <title>Comic Book Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0a192f, #020c1b);
+            font-family: 'Arial', sans-serif;
+            color: #64ffda;
+            height: 100vh;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .landing {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px #64ffda;
+        }
+
+        .load-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: #64ffda;
+            color: #0a192f;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .load-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #64ffda;
+        }
+
+        #comic-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .comic-image {
+            position: absolute;
+            max-width: none;
+            transform-origin: 0 0;
+            transition: transform 0.1s;
+            display: none;
+        }
+
+        .comic-image.active {
+            display: block;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(100, 255, 218, 0.3);
+            color: #64ffda;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(100, 255, 218, 0.5);
+        }
+
+        body:hover::after {
+            content: '';
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #64ffda;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            filter: blur(1px);
+            box-shadow: 0 0 15px #64ffda;
+        }
+    </style>
 </head>
 <body>
-    <div id="drop-zone" class="hidden-drop-zone">
-        <div class="drop-message">Drop CBZ file here</div>
+    <div class="landing">
+        <h1>Comic Book Viewer</h1>
+        <input type="file" id="cbz-file" accept=".cbz" hidden>
+        <button class="load-btn" onclick="document.getElementById('cbz-file').click()">Load CBZ</button>
     </div>
-    
-    <div class="container">
-        <header>
-            <h1>Minimal Comic Viewer</h1>
-            <div class="actions">
-                <div class="file-input-container">
-                    <label for="comic-file" class="file-input-label">Open CBZ File</label>
-                    <input type="file" id="comic-file" accept=".cbz" style="display: none;">
-                </div>
-                <button id="fullscreen-btn" class="icon-btn" disabled title="Toggle Fullscreen">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                    </svg>
-                </button>
-            </div>
-        </header>
-        
-        <main>
-            <div id="comic-container">
-                <div id="no-comic-message">
-                    <p>Select a CBZ file to start reading</p>
-                    <p class="subtitle">Or drag and drop a file anywhere on this page</p>
-                </div>
+
+    <div id="comic-container">
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="previousPage()">Previous</button>
+            <button class="nav-btn" onclick="nextPage()">Next</button>
+        </div>
+    </div>
+
+    <script>
+        let currentScale = 1;
+        let isPanning = false;
+        let startX, startY, translateX = 0, translateY = 0;
+        let currentPage = 0;
+        let images = [];
+
+        document.getElementById('cbz-file').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.querySelector('.landing').style.display = 'none';
+            document.getElementById('comic-container').style.display = 'block';
+
+            JSZip.loadAsync(file).then(zip => {
+                const imageFiles = Object.values(zip.files).filter(file => !file.dir);
+                const loadPromises = imageFiles.map(file => file.async('blob'));
                 
-                <div id="loading" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Loading comic...</p>
-                </div>
-                
-                <div id="comic-viewer" style="display: none;">
-                    <div id="page-wrapper">
-                        <img id="page-image" src="" alt="Comic page">
-                    </div>
-                    <div class="page-info">
-                        <span id="current-page">0</span> / <span id="total-pages">0</span>
-                    </div>
-                </div>
-            </div>
+                Promise.all(loadPromises).then(blobs => {
+                    images = blobs.map(blob => URL.createObjectURL(blob));
+                    showPage(currentPage);
+                    setupPanZoom();
+                });
+            });
+        }
+
+        function showPage(index) {
+            const container = document.getElementById('comic-container');
+            container.querySelectorAll('.comic-image').forEach(img => img.remove());
+
+            const img = new Image();
+            img.src = images[index];
+            img.className = 'comic-image active';
+            container.appendChild(img);
+
+            centerImage(img);
+        }
+
+        function centerImage(img) {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
             
-            <div id="controls" style="display: none;">
-                <div class="control-group">
-                    <button id="prev-btn" class="nav-btn">Previous</button>
-                    <div class="scaling-controls">
-                        <button id="zoom-out-btn" class="scale-btn" title="Zoom Out">-</button>
-                        <button id="reset-zoom-btn" class="scale-btn" title="Reset View">Reset</button>
-                        <button id="zoom-in-btn" class="scale-btn" title="Zoom In">+</button>
-                    </div>
-                    <button id="next-btn" class="nav-btn">Next</button>
-                </div>
-            </div>
-        </main>
-        
-        <footer>
-            <p>Minimal Comic Viewer | GitHub Pages</p>
-        </footer>
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="script.js"></script>
+            img.onload = () => {
+                const scale = Math.min(viewportWidth / img.width, viewportHeight / img.height);
+                currentScale = scale;
+                img.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+            };
+        }
+
+        function setupPanZoom() {
+            const container = document.getElementById('comic-container');
+            
+            container.addEventListener('wheel', e => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                currentScale *= delta;
+                
+                const rect = container.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                
+                translateX = (translateX - offsetX) * delta + offsetX;
+                translateY = (translateY - offsetY) * delta + offsetY;
+                
+                document.querySelector('.comic-image').style.transform = 
+                    `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+            });
+
+            container.addEventListener('mousedown', e => {
+                isPanning = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            });
+
+            document.addEventListener('mousemove', e => {
+                if (!isPanning) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                
+                document.querySelector('.comic-image').style.transform = 
+                    `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+            });
+
+            document.addEventListener('mouseup', () => isPanning = false);
+        }
+
+        function nextPage() {
+            if (currentPage < images.length - 1) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        }
+
+        // Mouse highlight effect
+        document.addEventListener('mousemove', e => {
+            document.body.style.setProperty('--x', `${e.clientX}px`);
+            document.body.style.setProperty('--y', `${e.clientY}px`);
+        });
+    </script>
 </body>
 </html>
