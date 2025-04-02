@@ -14,10 +14,11 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 20px;
     height: 100%;
@@ -163,6 +164,7 @@ main {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    overflow: hidden;
 }
 
 #comic-container {
@@ -176,7 +178,7 @@ main {
     border-radius: 16px;
     margin-bottom: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-    transition: all 0.3s ease;
+    position: relative;
 }
 
 #no-comic-message {
@@ -220,34 +222,58 @@ main {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+#page-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+}
+
+#page-wrapper.panning {
+    cursor: grabbing;
 }
 
 #page-image {
     max-width: 100%;
-    max-height: calc(100vh - 200px);
+    max-height: 100%;
     object-fit: contain;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
     border-radius: 4px;
-    transition: all 0.3s ease;
+    transition: transform 0.1s ease;
+    transform-origin: center center;
+    will-change: transform;
 }
 
 .page-info {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     margin-top: 16px;
     font-size: 0.9rem;
-    color: #888;
+    color: #e1e1e1;
     background-color: rgba(26, 26, 26, 0.7);
     padding: 6px 16px;
     border-radius: 20px;
     backdrop-filter: blur(4px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
 #controls {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-    transition: all 0.3s ease;
 }
 
 .control-group {
@@ -309,9 +335,19 @@ main {
     padding: 6px 12px;
     border-radius: 10px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    width: 40px;
+    height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#reset-zoom-btn {
+    width: auto;
+    padding: 6px 12px;
 }
 
 .scale-btn:hover {
@@ -323,13 +359,6 @@ main {
 .scale-btn:active {
     transform: translateY(1px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-.scale-btn.active {
-    background-color: #333;
-    color: #fff;
-    border-color: #444;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.1);
 }
 
 /* Footer styles */
@@ -354,49 +383,37 @@ footer {
     box-shadow: none;
 }
 
-.fullscreen-mode #page-image {
-    max-height: calc(100vh - 100px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-}
-
 .fullscreen-mode .container {
     max-width: 100%;
     padding: 0;
 }
 
 .fullscreen-mode #controls {
-    background-color: rgba(18, 18, 18, 0.8);
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 15px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     margin: 0;
-    backdrop-filter: blur(8px);
     z-index: 100;
+    width: auto;
 }
 
 .fullscreen-mode .control-group {
     margin: 0 auto;
-    background-color: transparent;
-    box-shadow: none;
+    background-color: rgba(29, 29, 29, 0.8);
+    backdrop-filter: blur(8px);
 }
 
-/* Fit modes */
-.fit-width #page-image {
-    width: 100%;
-    height: auto;
-    max-height: none;
+/* Fade controls on inactivity */
+.fade-controls .page-info,
+.fade-controls #controls {
+    opacity: 0;
 }
 
-.fit-height #page-image {
-    height: calc(100vh - 200px);
-    width: auto;
-    max-width: none;
-}
-
-.fullscreen-mode.fit-height #page-image {
-    height: calc(100vh - 100px);
+.fade-controls #comic-container:hover ~ #controls,
+.fade-controls #controls:hover,
+.fade-controls #comic-container:hover .page-info {
+    opacity: 1;
 }
 
 /* Responsive adjustments */
@@ -420,17 +437,5 @@ footer {
     
     .nav-btn {
         width: 100%;
-    }
-    
-    #page-image {
-        max-height: calc(100vh - 300px);
-    }
-    
-    .fullscreen-mode #page-image {
-        max-height: calc(100vh - 150px);
-    }
-    
-    .fullscreen-mode.fit-height #page-image {
-        height: calc(100vh - 150px);
     }
 }
