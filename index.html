@@ -1,43 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBZ Viewer</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CBZ Comic Viewer</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <!-- Cursor Highlight Effect -->
-    <div id="cursor-highlight"></div>
+  <div id="landing">
+    <h1>📖 CBZ Comic Viewer</h1>
+    <label for="file-input" class="custom-file-upload">Load CBZ File</label>
+    <input type="file" id="file-input" accept=".cbz,.zip" />
+  </div>
 
-    <!-- Landing Page -->
-    <div id="landing-page">
-        <h1>Web Comic Viewer</h1>
-        <p>Load your CBZ file to start reading</p>
-        <button id="load-button">Load CBZ File</button>
-        <input type="file" id="file-input" accept=".cbz" hidden>
-        <div id="loading-indicator" class="hidden">Loading...</div>
-        <div id="error-message" class="hidden"></div>
-    </div>
+  <div id="viewer" class="hidden">
+    <div id="canvas-container"></div>
+  </div>
 
-    <!-- Viewer Area -->
-    <div id="viewer" class="hidden">
-        <div id="image-container">
-            <img id="comic-image" src="" alt="Comic Page">
-        </div>
-        <div id="controls">
-            <button id="prev-button" title="Previous Page (Left Arrow)">◀</button>
-            <span id="page-info">Page 0 / 0</span>
-            <button id="next-button" title="Next Page (Right Arrow)">▶</button>
-            <button id="close-button" title="Close Comic (Esc)">✕</button>
-             <button id="zoom-reset-button" title="Reset Zoom/Pan (R)">Reset View</button>
-        </div>
-    </div>
+  <div id="cursor-highlight"></div>
 
-    <!-- JSZip Library (Download and place in the same folder) -->
-    <script src="jszip.min.js"></script>
-    <!-- Your Custom Script -->
-    <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
