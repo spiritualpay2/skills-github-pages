@@ -1,0 +1,206 @@
+/* --- Reset & Base --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevent body scrollbars */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee;
+    background-color: #1a1a1a; /* Dark base */
+    /* Teal Radial Gradient */
+    background-image: radial-gradient(circle at center, rgba(0, 128, 128, 0.4) 0%, rgba(0, 128, 128, 0) 70%),
+                      linear-gradient(to bottom, #1a1a1a, #111); /* Fallback/combo gradient */
+    background-repeat: no-repeat;
+    background-size: cover; /* Ensure gradient covers the page */
+    background-attachment: fixed; /* Keep gradient fixed during scroll/pan */
+}
+
+/* --- Cursor Highlight --- */
+#cursor-highlight {
+    position: fixed; /* Use fixed to stay in viewport */
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(0, 200, 200, 0.5); /* Teal highlight */
+    border-radius: 50%;
+    transform: translate(-50%, -50%); /* Center on cursor */
+    pointer-events: none; /* Ignore mouse events */
+    z-index: 9999;
+    transition: width 0.1s ease-out, height 0.1s ease-out, border-color 0.1s ease-out; /* Smooth size change */
+    opacity: 0; /* Initially hidden */
+}
+
+body:hover #cursor-highlight {
+    opacity: 1; /* Show when mouse is over body */
+}
+
+/* --- Landing Page --- */
+#landing-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh; /* Full viewport height */
+    padding: 20px;
+}
+
+#landing-page h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #00e0e0; /* Bright Teal */
+    text-shadow: 0 0 10px rgba(0, 200, 200, 0.5);
+}
+
+#landing-page p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: #ccc;
+}
+
+#load-button {
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    background-color: #008080; /* Teal */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    box-shadow: 0 4px 15px rgba(0, 128, 128, 0.3);
+}
+
+#load-button:hover {
+    background-color: #00a0a0; /* Lighter Teal */
+    transform: translateY(-2px);
+}
+
+#load-button:active {
+    transform: translateY(0px);
+}
+
+#loading-indicator, #error-message {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+}
+
+#error-message {
+    color: #ff6b6b; /* Reddish for errors */
+    background-color: rgba(255, 107, 107, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+
+/* --- Viewer --- */
+#viewer {
+    width: 100vw;
+    height: 100vh;
+    position: fixed; /* Cover entire viewport */
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent; /* Let body background show through */
+    cursor: grab; /* Indicate grabbable for panning */
+}
+
+#viewer.panning {
+    cursor: grabbing;
+}
+
+#image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Crucial for containing the scaled/panned image */
+    position: relative; /* Needed for absolute positioning of image if required */
+}
+
+#comic-image {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Scale image down to fit, maintaining aspect ratio */
+    user-select: none; /* Prevent image selection while dragging */
+    -webkit-user-drag: none; /* Prevent default image drag */
+    /* transform-origin: center center; Apply dynamically */
+    transition: transform 0.1s ease-out; /* Smooth zoom/pan (can be adjusted) */
+    /* Image will be scaled and translated via JS */
+}
+
+/* --- Controls --- */
+#controls {
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(30, 30, 30, 0.85); /* Semi-transparent dark bar */
+    backdrop-filter: blur(5px); /* Frosted glass effect */
+    padding: 8px 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 10;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#viewer.controls-hidden #controls {
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+#controls button {
+    background: none;
+    border: none;
+    color: #eee;
+    font-size: 1.5rem; /* Larger icons */
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.2s ease, transform 0.1s ease;
+    line-height: 1; /* Ensure buttons align well */
+}
+#controls button#zoom-reset-button {
+    font-size: 0.9rem; /* Smaller text for reset button */
+    padding: 5px 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+
+#controls button:hover {
+    color: #00e0e0; /* Teal highlight */
+    transform: scale(1.1);
+}
+#controls button:active {
+    transform: scale(1.0);
+}
+#controls button#zoom-reset-button:hover {
+    background-color: #444;
+    border-color: #777;
+}
+
+#page-info {
+    font-size: 1rem;
+    color: #ccc;
+    min-width: 80px; /* Prevent layout shifts */
+    text-align: center;
+    user-select: none; /* Prevent text selection */
+}
+
+/* --- Utility Classes --- */
+.hidden {
+    display: none !important; /* Force hide */
+}
