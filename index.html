@@ -1,25 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CBZ Comic Viewer</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBZ Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- JSZip library (required for reading .cbz files) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-  <div id="landing">
-    <h1>📖 CBZ Comic Viewer</h1>
-    <label for="file-input" class="custom-file-upload">Load CBZ File</label>
-    <input type="file" id="file-input" accept=".cbz,.zip" />
-  </div>
+    <div id="upload-container">
+        <h1>CBZ Web Viewer</h1>
+        <p>Select a .cbz file to view</p>
+        <label for="cbz-input" class="custom-file-upload">
+            Choose File
+        </label>
+        <input type="file" id="cbz-input" accept=".cbz,.zip" />
+        <p id="loading-message" class="hidden">Loading...</p>
+        <p id="error-message" class="hidden"></p>
+    </div>
 
-  <div id="viewer" class="hidden">
-    <div id="canvas-container"></div>
-  </div>
+    <div id="viewer-container" class="hidden">
+        <div id="comic-display">
+            <img id="comic-image" src="" alt="Comic Page" />
+        </div>
+        <div id="controls">
+            <button id="prev-page" title="Previous Page"><</button>
+            <span id="page-indicator">Page 0 / 0</span>
+            <button id="next-page" title="Next Page">></button>
+            <button id="zoom-in" title="Zoom In">+</button>
+            <button id="zoom-out" title="Zoom Out">-</button>
+            <button id="zoom-reset" title="Reset Zoom">Reset</button>
+             <button id="close-viewer" title="Close Viewer">Close</button>
+        </div>
+    </div>
 
-  <div id="cursor-highlight"></div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
