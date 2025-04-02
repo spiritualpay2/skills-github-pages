@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const noComicMessage = document.getElementById('no-comic-message');
     const loadingElement = document.getElementById('loading');
     const comicViewer = document.getElementById('comic-viewer');
+    const pageWrapper = document.getElementById('page-wrapper');
     const pageImage = document.getElementById('page-image');
     const currentPageEl = document.getElementById('current-page');
     const totalPagesEl = document.getElementById('total-pages');
@@ -12,25 +13,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const fullscreenBtn = document.getElementById('fullscreen-btn');
-    const fitWidthBtn = document.getElementById('fit-width-btn');
-    const fitHeightBtn = document.getElementById('fit-height-btn');
-    const fitScreenBtn = document.getElementById('fit-screen-btn');
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const resetZoomBtn = document.getElementById('reset-zoom-btn');
     const body = document.body;
     
     // State
     let comicPages = [];
     let currentPageIndex = 0;
     let isFullscreen = false;
+    let isPanning = false;
+    let startPoint = { x: 0, y: 0 };
+    let endPoint = { x: 0, y: 0 };
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    let inactivityTimer;
     
     // Event listeners
     fileInput.addEventListener('change', event => handleFileSelect(event.target.files[0]));
     prevBtn.addEventListener('click', goToPreviousPage);
     nextBtn.addEventListener('click', goToNextPage);
     fullscreenBtn.addEventListener('click', toggleFullscreen);
-    fitWidthBtn.addEventListener('click', () => setFitMode('width'));
-    fitHeightBtn.addEventListener('click', () => setFitMode('height'));
-    fitScreenBtn.addEventListener('click', () => setFitMode('screen'));
+    zoomInBtn.addEventListener('click', () => zoom(0.1));
+    zoomOutBtn.addEventListener('click', () => zoom(-0.1));
+    resetZoomBtn.addEventListener('click', resetView);
     document.addEventListener('keydown', handleKeyPress);
+    
+    // Pan and zoom event listeners
+    pageWrapper.addEventListener('mousedown', startPan);
+    pageWrapper.addEventListener('mousemove', pan);
+    pageWrapper.addEventListener('mouseup', endPan);
+    pageWrapper.addEventListener('mouseleave', endPan);
+    pageWrapper.addEventListener('wheel', handleWheel, { passive: false });
+    
+    // Touch events for mobile
+    pageWrapper.addEventListener('touchstart', startTouch);
+    pageWrapper.addEventListener('touchmove', moveTouch);
+    pageWrapper.addEventListener('touchend', endTouch);
+    
+    // Track mouse movement for UI fade
+    document.addEventListener('mousemove', resetInactivityTimer);
     
     // Drag and Drop handlers
     document.addEventListener('dragover', event => {
@@ -114,8 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update page counter
                 totalPagesEl.textContent = comicPages.length;
                 
-                // Set default fit mode
-                setFitMode('screen');
+                // Enter fullscreen mode automatically
+                if (!isFullscreen) toggleFullscreen();
+                
+                // Start the inactivity timer
+                resetInactivityTimer();
             } else {
                 showError('No image files found in the CBZ file.');
             }
@@ -136,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function displayPage(index) {
         if (index >= 0 && index < comicPages.length) {
+            // Reset view when changing pages
+            resetView();
+            
+            // Load the new page
             pageImage.src = comicPages[index].url;
             currentPageEl.textContent = index + 1;
             
@@ -173,6 +203,16 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'F':
                 toggleFullscreen();
                 break;
+            case '=':
+            case '+':
+                zoom(0.1);
+                break;
+            case '-':
+                zoom(-0.1);
+                break;
+            case '0':
+                resetView();
+                break;
         }
     }
     
@@ -180,41 +220,182 @@ document.addEventListener('DOMContentLoaded', () => {
         isFullscreen = !isFullscreen;
         
         if (isFullscreen) {
-            body.classList.add('fullscreen-mode');
+            body.classList.add('fullscreen-mode', 'fade-controls');
         } else {
-            body.classList.remove('fullscreen-mode');
-        }
-        
-        // Re-apply the current fit mode
-        const activeFitBtn = document.querySelector('.scale-btn.active');
-        if (activeFitBtn) {
-            const mode = activeFitBtn.id.replace('-btn', '').replace('fit-', '');
-            setFitMode(mode);
+            body.classList.remove('fullscreen-mode', 'fade-controls');
         }
     }
     
-    function setFitMode(mode) {
-        // Remove existing classes
-        body.classList.remove('fit-width', 'fit-height');
+    // Pan functionality
+    function startPan(e) {
+        if (e.button !== 0) return; // Only left mouse button
         
-        // Reset all buttons
-        fitWidthBtn.classList.remove('active');
-        fitHeightBtn.classList.remove('active');
-        fitScreenBtn.classList.remove('active');
+        isPanning = true;
+        pageWrapper.classList.add('panning');
+        startPoint = { x: e.clientX, y: e.clientY };
         
-        // Set the new mode
-        switch (mode) {
-            case 'width':
-                body.classList.add('fit-width');
-                fitWidthBtn.classList.add('active');
-                break;
-            case 'height':
-                body.classList.add('fit-height');
-                fitHeightBtn.classList.add('active');
-                break;
-            case 'screen':
-                fitScreenBtn.classList.add('active');
-                break;
+        // Store the current translate values
+        const transform = window.getComputedStyle(pageImage).getPropertyValue('transform');
+        if (transform && transform !== 'none') {
+            const matrix = transform.match(/matrix.*\((.+)\)/)[1].split(', ');
+            translateX = parseInt(matrix[4]) || 0;
+            translateY = parseInt(matrix[5]) || 0;
+        }
+        
+        e.preventDefault();
+    }
+    
+    function pan(e) {
+        if (!isPanning) return;
+        
+        endPoint = { x: e.clientX, y: e.clientY };
+        const dx = endPoint.x - startPoint.x;
+        const dy = endPoint.y - startPoint.y;
+        
+        // Apply the translation
+        updateTransform(translateX + dx, translateY + dy);
+        
+        e.preventDefault();
+    }
+    
+    function endPan() {
+        if (!isPanning) return;
+        
+        isPanning = false;
+        pageWrapper.classList.remove('panning');
+        
+        // Update the final translate values
+        const transform = window.getComputedStyle(pageImage).getPropertyValue('transform');
+        if (transform && transform !== 'none') {
+            const matrix = transform.match(/matrix.*\((.+)\)/)[1].split(', ');
+            translateX = parseInt(matrix[4]) || 0;
+            translateY = parseInt(matrix[5]) || 0;
+        }
+    }
+    
+    // Touch events for mobile devices
+    let lastDistance = 0;
+    
+    function startTouch(e) {
+        if (e.touches.length === 1) {
+            // Single touch - start panning
+            isPanning = true;
+            pageWrapper.classList.add('panning');
+            startPoint = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            
+            // Store the current translate values
+            const transform = window.getComputedStyle(pageImage).getPropertyValue('transform');
+            if (transform && transform !== 'none') {
+                const matrix = transform.match(/matrix.*\((.+)\)/)[1].split(', ');
+                translateX = parseInt(matrix[4]) || 0;
+                translateY = parseInt(matrix[5]) || 0;
+            }
+        } else if (e.touches.length === 2) {
+            // Pinch to zoom - calculate initial distance
+            lastDistance = getDistance(
+                e.touches[0].clientX, e.touches[0].clientY, 
+                e.touches[1].clientX, e.touches[1].clientY
+            );
+        }
+        
+        e.preventDefault();
+    }
+    
+    function moveTouch(e) {
+        if (e.touches.length === 1 && isPanning) {
+            // Single touch - pan
+            endPoint = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            const dx = endPoint.x - startPoint.x;
+            const dy = endPoint.y - startPoint.y;
+            
+            // Apply the translation
+            updateTransform(translateX + dx, translateY + dy);
+        } else if (e.touches.length === 2) {
+            // Pinch to zoom
+            const currentDistance = getDistance(
+                e.touches[0].clientX, e.touches[0].clientY, 
+                e.touches[1].clientX, e.touches[1].clientY
+            );
+            
+            if (lastDistance > 0) {
+                // Calculate zoom amount based on pinch distance change
+                const delta = currentDistance - lastDistance;
+                const zoomFactor = delta * 0.01; // Adjust sensitivity
+                zoom(zoomFactor);
+            }
+            
+            lastDistance = currentDistance;
+        }
+        
+        e.preventDefault();
+    }
+    
+    function endTouch() {
+        isPanning = false;
+        pageWrapper.classList.remove('panning');
+        lastDistance = 0;
+        
+        // Update the final translate values
+        const transform = window.getComputedStyle(pageImage).getPropertyValue('transform');
+        if (transform && transform !== 'none') {
+            const matrix = transform.match(/matrix.*\((.+)\)/)[1].split(', ');
+            translateX = parseInt(matrix[4]) || 0;
+            translateY = parseInt(matrix[5]) || 0;
+        }
+    }
+    
+    // Helper function to calculate distance between two points
+    function getDistance(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+    
+    // Handle wheel events for zoom
+    function handleWheel(e) {
+        // Check if it's a pinch gesture (ctrl key is pressed on trackpads)
+        if (e.ctrlKey) {
+            e.preventDefault();
+            
+            // Delta is positive for zoom in, negative for zoom out
+            const delta = -e.deltaY * 0.01;
+            zoom(delta);
+        }
+    }
+    
+    // Zoom functionality
+    function zoom(delta) {
+        const newScale = Math.max(0.1, Math.min(5, scale + delta));
+        
+        if (newScale !== scale) {
+            scale = newScale;
+            
+            // Apply the new scale while maintaining the translation
+            updateTransform(translateX, translateY);
+            
+            // Reset the inactivity timer when zooming
+            resetInactivityTimer();
+        }
+    }
+    
+    function updateTransform(tx, ty) {
+        pageImage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+    
+    function resetView() {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        updateTransform(0, 0);
+    }
+    
+    // UI fade on inactivity
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        body.classList.remove('fade-controls');
+        
+        if (isFullscreen) {
+            inactivityTimer = setTimeout(() => {
+                body.classList.add('fade-controls');
+            }, 3000);
         }
     }
     
