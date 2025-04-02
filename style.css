@@ -1,93 +1,151 @@
+:root {
+    --primary-bg: #1a1a1a;
+    --secondary-bg: #2b2b2b;
+    --text-color: #e0e0e0;
+    --accent-color: #007bff;
+    --error-color: #dc3545;
+}
+
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  font-family: 'Segoe UI', sans-serif;
-  color: white;
-  background: radial-gradient(circle at center, #004d4d, #000000 90%);
-  cursor: none;
+    height: 100%;
+    font-family: sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+    overflow: hidden; /* Prevent scrollbars on body */
 }
 
-#landing {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  text-align: center;
+/* --- Upload Area --- */
+#upload-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
 }
 
-#landing h1 {
-  font-size: 3rem;
-  margin-bottom: 2rem;
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff;
+#upload-container h1 {
+    margin-bottom: 15px;
+    color: var(--accent-color);
+}
+
+#upload-container p {
+    margin-bottom: 20px;
+}
+
+input[type="file"] {
+    display: none; /* Hide the default input */
 }
 
 .custom-file-upload {
-  background: #002f2f;
-  padding: 1em 2em;
-  border-radius: 8px;
-  border: 2px solid #00ffff;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: background 0.3s;
+    display: inline-block;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
 }
 
 .custom-file-upload:hover {
-  background: #004d4d;
+    background-color: #0056b3;
 }
 
-#file-input {
-  display: none;
+#loading-message {
+    margin-top: 20px;
+    font-style: italic;
 }
 
-#viewer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+#error-message {
+    margin-top: 15px;
+    color: var(--error-color);
+    font-weight: bold;
 }
 
-#canvas-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: start;
-  transform-origin: top left;
-  transition: transform 0.05s;
+/* --- Viewer Area --- */
+#viewer-container {
+    display: flex; /* Use flex for layout */
+    flex-direction: column; /* Stack display area and controls vertically */
+    height: 100vh; /* Full viewport height */
+    width: 100vw; /* Full viewport width */
+    background-color: var(--primary-bg);
+    position: relative; /* Needed for absolute positioning of controls if desired */
 }
 
-#canvas-container img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 10px;
-  user-select: none;
-  pointer-events: none;
+#comic-display {
+    flex-grow: 1; /* Take up remaining vertical space */
+    display: flex;
+    justify-content: center; /* Center image horizontally */
+    align-items: center; /* Center image vertically */
+    overflow: hidden; /* Hide overflow when zooming */
+    position: relative; /* For positioning the image */
+    cursor: grab; /* Indicate panning is possible (though not implemented yet) */
 }
 
+#comic-display:active {
+     cursor: grabbing;
+}
+
+#comic-image {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Scale image while preserving aspect ratio */
+    transition: transform 0.1s ease-out; /* Smooth zoom transition */
+    transform-origin: center center; /* Zoom from center */
+    user-select: none; /* Prevent image selection */
+    -webkit-user-drag: none; /* Prevent dragging ghost image */
+}
+
+/* --- Controls --- */
+#controls {
+    background-color: var(--secondary-bg);
+    padding: 10px;
+    text-align: center;
+    flex-shrink: 0; /* Prevent controls from shrinking */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    position: relative; /* Ensure it's above the image if absolutely positioned */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Spacing between buttons */
+}
+
+#controls button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+#controls button:hover {
+    background-color: #0056b3;
+}
+
+#controls button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+#page-indicator {
+    min-width: 100px; /* Prevent layout shift */
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+/* --- Utility Classes --- */
 .hidden {
-  display: none;
-}
-
-#cursor-highlight {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  pointer-events: none;
-  background: rgba(0, 255, 255, 0.3);
-  box-shadow: 0 0 20px 10px rgba(0, 255, 255, 0.2);
-  transform: translate(-50%, -50%);
-  z-index: 1000;
+    display: none !important; /* Use !important to override other display properties */
 }
