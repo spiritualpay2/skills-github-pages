@@ -3,236 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comic Book Viewer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: radial-gradient(circle at center, #0a192f, #020c1b);
-            font-family: 'Arial', sans-serif;
-            color: #64ffda;
-            height: 100vh;
-            overflow: hidden;
-            cursor: none;
-        }
-
-        .landing {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 10px #64ffda;
-        }
-
-        .load-btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            background: #64ffda;
-            color: #0a192f;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .load-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #64ffda;
-        }
-
-        #comic-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-        }
-
-        .comic-image {
-            position: absolute;
-            max-width: none;
-            transform-origin: 0 0;
-            transition: transform 0.1s;
-            display: none;
-        }
-
-        .comic-image.active {
-            display: block;
-        }
-
-        .nav-buttons {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 1000;
-        }
-
-        .nav-btn {
-            padding: 10px 20px;
-            background: rgba(100, 255, 218, 0.3);
-            color: #64ffda;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-        }
-
-        .nav-btn:hover {
-            background: rgba(100, 255, 218, 0.5);
-        }
-
-        body:hover::after {
-            content: '';
-            position: fixed;
-            width: 40px;
-            height: 40px;
-            border: 2px solid #64ffda;
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            filter: blur(1px);
-            box-shadow: 0 0 15px #64ffda;
-        }
-    </style>
+    <title>CBZ Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
 </head>
 <body>
-    <div class="landing">
-        <h1>Comic Book Viewer</h1>
-        <input type="file" id="cbz-file" accept=".cbz" hidden>
-        <button class="load-btn" onclick="document.getElementById('cbz-file').click()">Load CBZ</button>
+    <!-- Cursor Highlight Effect -->
+    <div id="cursor-highlight"></div>
+
+    <!-- Landing Page -->
+    <div id="landing-page">
+        <h1>Web Comic Viewer</h1>
+        <p>Load your CBZ file to start reading</p>
+        <button id="load-button">Load CBZ File</button>
+        <input type="file" id="file-input" accept=".cbz" hidden>
+        <div id="loading-indicator" class="hidden">Loading...</div>
+        <div id="error-message" class="hidden"></div>
     </div>
 
-    <div id="comic-container">
-        <div class="nav-buttons">
-            <button class="nav-btn" onclick="previousPage()">Previous</button>
-            <button class="nav-btn" onclick="nextPage()">Next</button>
+    <!-- Viewer Area -->
+    <div id="viewer" class="hidden">
+        <div id="image-container">
+            <img id="comic-image" src="" alt="Comic Page">
+        </div>
+        <div id="controls">
+            <button id="prev-button" title="Previous Page (Left Arrow)">◀</button>
+            <span id="page-info">Page 0 / 0</span>
+            <button id="next-button" title="Next Page (Right Arrow)">▶</button>
+            <button id="close-button" title="Close Comic (Esc)">✕</button>
+             <button id="zoom-reset-button" title="Reset Zoom/Pan (R)">Reset View</button>
         </div>
     </div>
 
-    <script>
-        let currentScale = 1;
-        let isPanning = false;
-        let startX, startY, translateX = 0, translateY = 0;
-        let currentPage = 0;
-        let images = [];
-
-        document.getElementById('cbz-file').addEventListener('change', handleFileUpload);
-
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            document.querySelector('.landing').style.display = 'none';
-            document.getElementById('comic-container').style.display = 'block';
-
-            JSZip.loadAsync(file).then(zip => {
-                const imageFiles = Object.values(zip.files).filter(file => !file.dir);
-                const loadPromises = imageFiles.map(file => file.async('blob'));
-                
-                Promise.all(loadPromises).then(blobs => {
-                    images = blobs.map(blob => URL.createObjectURL(blob));
-                    showPage(currentPage);
-                    setupPanZoom();
-                });
-            });
-        }
-
-        function showPage(index) {
-            const container = document.getElementById('comic-container');
-            container.querySelectorAll('.comic-image').forEach(img => img.remove());
-
-            const img = new Image();
-            img.src = images[index];
-            img.className = 'comic-image active';
-            container.appendChild(img);
-
-            centerImage(img);
-        }
-
-        function centerImage(img) {
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            img.onload = () => {
-                const scale = Math.min(viewportWidth / img.width, viewportHeight / img.height);
-                currentScale = scale;
-                img.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
-            };
-        }
-
-        function setupPanZoom() {
-            const container = document.getElementById('comic-container');
-            
-            container.addEventListener('wheel', e => {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                currentScale *= delta;
-                
-                const rect = container.getBoundingClientRect();
-                const offsetX = e.clientX - rect.left;
-                const offsetY = e.clientY - rect.top;
-                
-                translateX = (translateX - offsetX) * delta + offsetX;
-                translateY = (translateY - offsetY) * delta + offsetY;
-                
-                document.querySelector('.comic-image').style.transform = 
-                    `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
-            });
-
-            container.addEventListener('mousedown', e => {
-                isPanning = true;
-                startX = e.clientX - translateX;
-                startY = e.clientY - translateY;
-            });
-
-            document.addEventListener('mousemove', e => {
-                if (!isPanning) return;
-                translateX = e.clientX - startX;
-                translateY = e.clientY - startY;
-                
-                document.querySelector('.comic-image').style.transform = 
-                    `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
-            });
-
-            document.addEventListener('mouseup', () => isPanning = false);
-        }
-
-        function nextPage() {
-            if (currentPage < images.length - 1) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        }
-
-        function previousPage() {
-            if (currentPage > 0) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        }
-
-        // Mouse highlight effect
-        document.addEventListener('mousemove', e => {
-            document.body.style.setProperty('--x', `${e.clientX}px`);
-            document.body.style.setProperty('--y', `${e.clientY}px`);
-        });
-    </script>
+    <!-- JSZip Library (Download and place in the same folder) -->
+    <script src="jszip.min.js"></script>
+    <!-- Your Custom Script -->
+    <script src="script.js"></script>
 </body>
 </html>
