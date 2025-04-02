@@ -41,7 +41,9 @@
                 </div>
                 
                 <div id="comic-viewer" style="display: none;">
-                    <img id="page-image" src="" alt="Comic page">
+                    <div id="page-wrapper">
+                        <img id="page-image" src="" alt="Comic page">
+                    </div>
                     <div class="page-info">
                         <span id="current-page">0</span> / <span id="total-pages">0</span>
                     </div>
@@ -52,9 +54,9 @@
                 <div class="control-group">
                     <button id="prev-btn" class="nav-btn">Previous</button>
                     <div class="scaling-controls">
-                        <button id="fit-width-btn" class="scale-btn" title="Fit to width">Width</button>
-                        <button id="fit-height-btn" class="scale-btn" title="Fit to height">Height</button>
-                        <button id="fit-screen-btn" class="scale-btn active" title="Fit to screen">Best Fit</button>
+                        <button id="zoom-out-btn" class="scale-btn" title="Zoom Out">-</button>
+                        <button id="reset-zoom-btn" class="scale-btn" title="Reset View">Reset</button>
+                        <button id="zoom-in-btn" class="scale-btn" title="Zoom In">+</button>
                     </div>
                     <button id="next-btn" class="nav-btn">Next</button>
                 </div>
