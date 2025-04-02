@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Comic Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+</head>
+<body>
+    <div id="drop-zone" class="hidden-drop-zone">
+        <div class="drop-message">Drop CBZ file here</div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>Minimal Comic Viewer</h1>
+            <div class="actions">
+                <div class="file-input-container">
+                    <label for="comic-file" class="file-input-label">Open CBZ File</label>
+                    <input type="file" id="comic-file" accept=".cbz" style="display: none;">
+                </div>
+                <button id="fullscreen-btn" class="icon-btn" disabled title="Toggle Fullscreen">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+        
+        <main>
+            <div id="comic-container">
+                <div id="no-comic-message">
+                    <p>Select a CBZ file to start reading</p>
+                    <p class="subtitle">Or drag and drop a file anywhere on this page</p>
+                </div>
+                
+                <div id="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading comic...</p>
+                </div>
+                
+                <div id="comic-viewer" style="display: none;">
+                    <img id="page-image" src="" alt="Comic page">
+                    <div class="page-info">
+                        <span id="current-page">0</span> / <span id="total-pages">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="controls" style="display: none;">
+                <div class="control-group">
+                    <button id="prev-btn" class="nav-btn">Previous</button>
+                    <div class="scaling-controls">
+                        <button id="fit-width-btn" class="scale-btn" title="Fit to width">Width</button>
+                        <button id="fit-height-btn" class="scale-btn" title="Fit to height">Height</button>
+                        <button id="fit-screen-btn" class="scale-btn active" title="Fit to screen">Best Fit</button>
+                    </div>
+                    <button id="next-btn" class="nav-btn">Next</button>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Minimal Comic Viewer | GitHub Pages</p>
+        </footer>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
