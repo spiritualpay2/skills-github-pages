@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal CBZ Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- JSZip library from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div id="landing-page">
+            <h1>Minimal CBZ Viewer</h1>
+            <p>Select a .cbz file to start reading.</p>
+            <label for="file-input" class="file-label">
+                <span>Choose CBZ File</span>
+                <input type="file" id="file-input" accept=".cbz" aria-label="Choose CBZ File">
+            </label>
+            <p id="loading-message" class="hidden">Loading...</p>
+            <p id="error-message" class="hidden"></p>
+        </div>
+
+        <div id="viewer-page" class="hidden">
+            <div class="viewer-controls top">
+                <span id="file-name"></span>
+                <span id="page-indicator">Page 0 / 0</span>
+            </div>
+
+            <div class="viewer-main">
+                <button id="prev-page" class="nav-button prev" aria-label="Previous Page">&lt;</button>
+                <div id="image-container">
+                    <img id="current-page-image" src="" alt="Comic Page">
+                </div>
+                <button id="next-page" class="nav-button next" aria-label="Next Page">&gt;</button>
+            </div>
+
+             <div class="viewer-controls bottom">
+                 <button id="close-viewer" class="control-button">Close File</button>
+             </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
