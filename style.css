@@ -1,151 +1,50 @@
-:root {
-    --primary-bg: #1a1a1a;
-    --secondary-bg: #2b2b2b;
-    --text-color: #e0e0e0;
-    --accent-color: #007bff;
-    --error-color: #dc3545;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html, body {
-    height: 100%;
+/* Basic page styling */
+body {
     font-family: sans-serif;
-    background-color: var(--primary-bg);
-    color: var(--text-color);
-    overflow: hidden; /* Prevent scrollbars on body */
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
 }
 
-/* --- Upload Area --- */
-#upload-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
+h1, p {
+    text-align: center;
+}
+
+/* The main gallery container */
+.video-gallery {
+    display: grid;
+    /*
+     * Creates responsive columns:
+     * - Tries to fit as many columns as possible (auto-fit).
+     * - Each column is at least 300px wide (minmax(300px, ...)).
+     * - If there's extra space, columns share it equally (... , 1fr)).
+     * - Adjust '300px' if the X embeds look too squished or too wide on average.
+     */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px; /* Space between gallery items */
     padding: 20px;
-    text-align: center;
+    max-width: 1200px; /* Optional: Limit the max width of the gallery */
+    margin: 20px auto; /* Center the gallery container */
 }
 
-#upload-container h1 {
-    margin-bottom: 15px;
-    color: var(--accent-color);
+/* Each individual video item container */
+.video-item {
+    /* The X embed code often brings its own styling (borders, background).
+       You might not need much styling here unless you want to add
+       an extra border or background *around* the embed. */
+    background-color: #ffffff; /* White background for each item */
+    padding: 5px; /* Small padding around the embed */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow effect */
+    /* The X embed script should make the content responsive */
 }
 
-#upload-container p {
-    margin-bottom: 20px;
-}
-
-input[type="file"] {
-    display: none; /* Hide the default input */
-}
-
-.custom-file-upload {
-    display: inline-block;
-    padding: 10px 20px;
-    cursor: pointer;
-    background-color: var(--accent-color);
-    color: white;
-    border-radius: 5px;
-    transition: background-color 0.2s ease;
-}
-
-.custom-file-upload:hover {
-    background-color: #0056b3;
-}
-
-#loading-message {
-    margin-top: 20px;
-    font-style: italic;
-}
-
-#error-message {
-    margin-top: 15px;
-    color: var(--error-color);
-    font-weight: bold;
-}
-
-/* --- Viewer Area --- */
-#viewer-container {
-    display: flex; /* Use flex for layout */
-    flex-direction: column; /* Stack display area and controls vertically */
-    height: 100vh; /* Full viewport height */
-    width: 100vw; /* Full viewport width */
-    background-color: var(--primary-bg);
-    position: relative; /* Needed for absolute positioning of controls if desired */
-}
-
-#comic-display {
-    flex-grow: 1; /* Take up remaining vertical space */
-    display: flex;
-    justify-content: center; /* Center image horizontally */
-    align-items: center; /* Center image vertically */
-    overflow: hidden; /* Hide overflow when zooming */
-    position: relative; /* For positioning the image */
-    cursor: grab; /* Indicate panning is possible (though not implemented yet) */
-}
-
-#comic-display:active {
-     cursor: grabbing;
-}
-
-#comic-image {
-    display: block;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* Scale image while preserving aspect ratio */
-    transition: transform 0.1s ease-out; /* Smooth zoom transition */
-    transform-origin: center center; /* Zoom from center */
-    user-select: none; /* Prevent image selection */
-    -webkit-user-drag: none; /* Prevent dragging ghost image */
-}
-
-/* --- Controls --- */
-#controls {
-    background-color: var(--secondary-bg);
-    padding: 10px;
-    text-align: center;
-    flex-shrink: 0; /* Prevent controls from shrinking */
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-    position: relative; /* Ensure it's above the image if absolutely positioned */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px; /* Spacing between buttons */
-}
-
-#controls button {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
-}
-
-#controls button:hover {
-    background-color: #0056b3;
-}
-
-#controls button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-}
-
-#page-indicator {
-    min-width: 100px; /* Prevent layout shift */
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-/* --- Utility Classes --- */
-.hidden {
-    display: none !important; /* Use !important to override other display properties */
+/*
+ * Ensure the embedded tweet iframe/widget behaves well within the grid item.
+ * This targets the blockquote and potential iframe that X's script generates.
+ * You might need to inspect element in your browser if embeds aren't resizing.
+*/
+.video-item > .twitter-tweet,
+.video-item > blockquote.twitter-tweet {
+     margin: 0 auto !important; /* Center the embed and override default margins */
+     /* The width/height is usually controlled by the embed script */
 }
