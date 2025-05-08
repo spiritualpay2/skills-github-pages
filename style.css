@@ -1,50 +1,185 @@
-/* Basic page styling */
+:root {
+    --primary-bg: #1A1A1B;
+    --secondary-bg: #272729;
+    --tertiary-bg: #3A3A3C;
+    --primary-text: #D7DADC;
+    --secondary-text: #818384;
+    --accent-green: #4CAF50; /* Softer green: #54AF57 or #66BB6A */
+    --accent-green-hover: #388E3C;
+    --accent-teal: #008080;
+    --danger-red: #D32F2F;
+    --danger-red-hover: #B71C1C;
+    --border-color: #343536;
+    --button-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    --button-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
 body {
-    font-family: sans-serif;
-    margin: 20px;
-    background-color: #f4f4f4;
-    color: #333;
+    margin: 0;
+    font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
+    line-height: 1.6;
+    overflow-x: hidden; /* Prevent horizontal scroll from gradient */
+    background-image: radial-gradient(circle at 50% 50%, rgba(0, 128, 128, 0.15) 0%, var(--primary-bg) 60%);
+    background-attachment: fixed;
 }
 
-h1, p {
-    text-align: center;
-}
-
-/* The main gallery container */
-.video-gallery {
-    display: grid;
-    /*
-     * Creates responsive columns:
-     * - Tries to fit as many columns as possible (auto-fit).
-     * - Each column is at least 300px wide (minmax(300px, ...)).
-     * - If there's extra space, columns share it equally (... , 1fr)).
-     * - Adjust '300px' if the X embeds look too squished or too wide on average.
-     */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px; /* Space between gallery items */
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
-    max-width: 1200px; /* Optional: Limit the max width of the gallery */
-    margin: 20px auto; /* Center the gallery container */
 }
 
-/* Each individual video item container */
+.app-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: var(--secondary-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.app-header h1 {
+    color: var(--primary-text);
+    margin-bottom: 5px;
+    font-size: 2.5em;
+}
+
+.app-header p {
+    color: var(--secondary-text);
+    font-size: 1.1em;
+}
+
+.input-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--secondary-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+#redditUrlInput {
+    flex-grow: 1;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--tertiary-bg);
+    color: var(--primary-text);
+    font-size: 1em;
+    outline: none;
+}
+
+#redditUrlInput:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.action-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--accent-green);
+    color: white;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-out, box-shadow 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--button-shadow);
+}
+
+.action-button:hover {
+    background-color: var(--accent-green-hover);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--button-shadow-hover);
+}
+
+.action-button:active {
+    transform: translateY(0px) scale(1);
+    box-shadow: var(--button-shadow);
+}
+
+.action-button svg {
+    vertical-align: middle;
+}
+
+.danger-button {
+    background-color: var(--danger-red);
+}
+
+.danger-button:hover {
+    background-color: var(--danger-red-hover);
+}
+
+.video-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); /* Responsive columns */
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
 .video-item {
-    /* The X embed code often brings its own styling (borders, background).
-       You might not need much styling here unless you want to add
-       an extra border or background *around* the embed. */
-    background-color: #ffffff; /* White background for each item */
-    padding: 5px; /* Small padding around the embed */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow effect */
-    /* The X embed script should make the content responsive */
+    background-color: var(--secondary-bg);
+    border-radius: 8px;
+    overflow: hidden; /* Ensures blockquote content fits */
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    position: relative; /* For potential future close button */
 }
 
-/*
- * Ensure the embedded tweet iframe/widget behaves well within the grid item.
- * This targets the blockquote and potential iframe that X's script generates.
- * You might need to inspect element in your browser if embeds aren't resizing.
-*/
-.video-item > .twitter-tweet,
-.video-item > blockquote.twitter-tweet {
-     margin: 0 auto !important; /* Center the embed and override default margins */
-     /* The width/height is usually controlled by the embed script */
+/* Styling for Reddit Embeds */
+.video-item blockquote.reddit-embed-bq {
+    background-color: transparent !important; /* Override Reddit's default bg if any */
+    border: none !important; /* Override Reddit's default border */
+    margin: 0 !important; /* Remove default blockquote margin */
+    padding: 0 !important; /* Remove default blockquote padding */
+    box-sizing: border-box;
+    min-height: 250px; /* Minimum height for better layout before content loads */
+}
+
+/* Ensure iframe within embed is responsive */
+.video-item iframe {
+    display: block; /* Remove extra space below iframe */
+    max-width: 100%;
+    width: 100% !important; /* Important to override potential inline styles from Reddit */
+    min-height: 250px; /* Minimum height for video area */
+}
+
+
+.controls-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--secondary-text);
+    font-size: 0.9em;
+    border-top: 1px solid var(--border-color);
+    margin-top: 40px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+    .input-section {
+        flex-direction: column;
+    }
+    #redditUrlInput {
+        width: calc(100% - 30px); /* Full width minus padding */
+        margin-bottom: 10px;
+    }
+    .action-button {
+        width: 100%;
+        justify-content: center;
+    }
+    .app-header h1 {
+        font-size: 2em;
+    }
 }
