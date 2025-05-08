@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Video Gallery</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>My Reddit Video Gallery</h1>
+            <p>A private space to save and view your favorite Reddit videos.</p>
+        </header>
 
+        <section class="input-section">
+            <input type="url" id="redditUrlInput" placeholder="Paste Reddit Post URL (e.g., https://www.reddit.com/r/...)">
+            <button id="addVideoButton" class="action-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18px" height="18px"><path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z"></path></svg>
+                Add Video
+            </button>
+        </section>
+
+        <main id="videoGallery" class="video-gallery-grid">
+            <!-- Videos will be dynamically inserted here -->
+        </main>
+
+        <section class="controls-section">
+            <button id="clearAllButton" class="action-button danger-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18px" height="18px"><path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 11H11V17H9V11ZM13 11H15V17H13V11ZM9 4V6H15V4H9Z"></path></svg>
+                Clear All Videos
+            </button>
+        </section>
+
+        <footer>
+            <p>© 2023 Your Private Gallery</p>
+        </footer>
+    </div>
+
+    <!-- Reddit Embed Script - IMPORTANT! -->
+    <script async src="https://embed.reddit.com/widgets.js" charset="UTF-8"></script>
+    <script src="script.js"></script>
+</body>
+</html>
