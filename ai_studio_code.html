@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamLite | Discovery</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f1014',
+                        card: '#1b1c22',
+                        accent: '#e50914',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            background-color: #0f1014;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f1014; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e50914; }
+
+        /* Mouse Spotlight Effect */
+        #spotlight {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            background: radial-gradient(600px circle at var(--x) var(--y), rgba(255,255,255,0.03), transparent 40%);
+        }
+
+        /* Smooth Image Loading */
+        .poster-img {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        .poster-img.loaded { opacity: 1; }
+        .movie-card:hover .poster-img { transform: scale(1.05); }
+
+        .hidden-scroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .hidden-scroll::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Mouse Spotlight -->
+    <div id="spotlight"></div>
+
+    <!-- API Key Modal (First Run) -->
+    <div id="api-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm hidden">
+        <div class="bg-card p-8 rounded-xl max-w-md w-full border border-gray-800 shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4 text-accent"><i class="fa-solid fa-key mr-2"></i>Setup Required</h2>
+            <p class="text-gray-400 mb-6 text-sm">Enter your TMDB API Key to load content. The key is stored locally in your browser.</p>
+            <input type="text" id="api-input" placeholder="Enter TMDB API Key" class="w-full bg-dark border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent mb-4">
+            <button onclick="saveApiKey()" class="w-full bg-accent hover:bg-red-700 text-white font-bold py-3 rounded-lg transition">Get Started</button>
+            <a href="https://www.themoviedb.org/settings/api" target="_blank" class="block text-center mt-4 text-xs text-gray-500 hover:text-white">Don't have a key? Click here.</a>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-40 bg-gradient-to-b from-black/90 to-transparent px-6 py-4 flex justify-between items-center transition-all duration-300" id="navbar">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="loadHome()">
+            <i class="fa-solid fa-play text-accent text-2xl"></i>
+            <span class="text-xl font-bold tracking-wide">StreamLite</span>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="relative group hidden md:block">
+                <input type="text" id="search-input" placeholder="Search..." class="bg-black/50 border border-gray-700 rounded-full px-4 py-2 text-sm w-64 focus:outline-none focus:border-accent transition-all">
+                <i class="fa-solid fa-magnifying-glass absolute right-4 top-2.5 text-gray-400"></i>
+            </div>
+            
+            <button onclick="toggleWatchlist()" class="relative hover:text-accent transition">
+                <i class="fa-solid fa-bookmark text-xl"></i>
+                <span id="watchlist-count" class="absolute -top-2 -right-2 bg-accent text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            </button>
+            
+            <button onclick="toggleSettings()" class="hover:text-accent transition">
+                <i class="fa-solid fa-sliders text-xl"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Settings / Personalization Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleSettings()"></div>
+        <div class="absolute right-0 top-0 h-full w-80 bg-card border-l border-gray-800 p-6 transform transition-transform duration-300 translate-x-full" id="settings-panel">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-user-gear"></i> Personalize</h2>
+            
+            <!-- Option 1: Genre Preference -->
+            <div class="mb-6">
+                <label class="text-xs uppercase text-gray-500 font-bold mb-2 block">Favorite Genre</label>
+                <select id="genre-select" onchange="savePreferences()" class="w-full bg-dark border border-gray-700 rounded p-2 text-sm">
+                    <option value="28">Action</option>
+                    <option value="35">Comedy</option>
+                    <option value="18">Drama</option>
+                    <option value="27">Horror</option>
+                    <option value="878">Sci-Fi</option>
+                </select>
+            </div>
+
+            <!-- Option 2: Sort Order -->
+            <div class="mb-6">
+                <label class="text-xs uppercase text-gray-500 font-bold mb-2 block">Sort Recommendations</label>
+                <select id="sort-select" onchange="savePreferences()" class="w-full bg-dark border border-gray-700 rounded p-2 text-sm">
+                    <option value="popularity.desc">Most Popular</option>
+                    <option value="vote_average.desc">Top Rated</option>
+                    <option value="primary_release_date.desc">Newest Releases</option>
+                </select>
+            </div>
+
+            <div class="mt-auto border-t border-gray-800 pt-4">
+                <button onclick="logout()" class="text-red-500 text-sm hover:underline"><i class="fa-solid fa-right-from-bracket mr-2"></i>Reset API Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-20 pb-10 px-4 md:px-12 space-y-12">
+        
+        <!-- Hero Section -->
+        <div id="hero-section" class="relative rounded-2xl overflow-hidden h-[60vh] w-full bg-card flex items-end p-8 md:p-12 mb-8 shadow-2xl">
+            <!-- Dynamic Content -->
+            <div class="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent z-10"></div>
+            <img id="hero-img" class="absolute inset-0 w-full h-full object-cover opacity-60" src="" alt="">
+            
+            <div class="relative z-20 max-w-2xl">
+                <h1 id="hero-title" class="text-4xl md:text-6xl font-bold mb-4 leading-tight">Loading...</h1>
+                <p id="hero-desc" class="text-gray-300 mb-6 line-clamp-3 text-sm md:text-base">Please wait while we fetch the latest hits.</p>
+                <div class="flex gap-4">
+                    <button class="bg-accent text-white px-6 py-2 rounded font-semibold flex items-center gap-2 hover:bg-red-700 transition" onclick="playMovie()">
+                        <i class="fa-solid fa-play"></i> Play Now
+                    </button>
+                    <button class="bg-gray-700/50 backdrop-blur text-white px-6 py-2 rounded font-semibold flex items-center gap-2 hover:bg-gray-600 transition" onclick="addToWatchlistFromHero()">
+                        <i class="fa-solid fa-plus"></i> My List
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections Container -->
+        <div id="content-container">
+            <!-- Trending -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 border-l-4 border-accent pl-3">Trending Now</h2>
+                <div id="trending-row" class="flex gap-4 overflow-x-auto hidden-scroll pb-4"></div>
+            </div>
+
+            <!-- Personalized -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 border-l-4 border-accent pl-3 flex items-center gap-2">
+                    Recommended For You <i class="fa-solid fa-wand-magic-sparkles text-yellow-500 text-sm"></i>
+                </h2>
+                <div id="recommended-row" class="flex gap-4 overflow-x-auto hidden-scroll pb-4"></div>
+            </div>
+            
+            <!-- Top Rated -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 border-l-4 border-accent pl-3">All Time Classics</h2>
+                <div id="top-rated-row" class="flex gap-4 overflow-x-auto hidden-scroll pb-4"></div>
+            </div>
+        </div>
+
+        <!-- Watchlist Grid (Hidden by default) -->
+        <div id="watchlist-view" class="hidden">
+            <h2 class="text-2xl font-bold mb-6">Your Watchlist</h2>
+            <div id="watchlist-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
+            <div id="empty-watchlist" class="text-center text-gray-500 mt-20 hidden">
+                <i class="fa-regular fa-folder-open text-6xl mb-4"></i>
+                <p>Your list is empty.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Video/Details Modal -->
+    <div id="details-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur hidden">
+        <div class="relative w-full max-w-4xl bg-card rounded-xl overflow-hidden shadow-2xl border border-gray-800 m-4">
+            <button onclick="closeDetails()" class="absolute top-4 right-4 z-20 bg-black/50 rounded-full p-2 hover:bg-accent transition"><i class="fa-solid fa-xmark text-white text-xl w-6 h-6 flex items-center justify-center"></i></button>
+            
+            <div class="grid md:grid-cols-2">
+                <div class="h-64 md:h-96 relative">
+                    <img id="modal-img" src="" class="absolute inset-0 w-full h-full object-cover">
+                </div>
+                <div class="p-8 flex flex-col justify-center">
+                    <h2 id="modal-title" class="text-3xl font-bold mb-2"></h2>
+                    <div class="flex items-center gap-4 text-sm text-gray-400 mb-4">
+                        <span id="modal-date"></span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-star text-yellow-500"></i> <span id="modal-rate"></span></span>
+                    </div>
+                    <p id="modal-desc" class="text-gray-300 text-sm mb-6"></p>
+                    
+                    <div class="mt-auto">
+                        <!-- NOTE: We cannot stream copyrighted content. This is a discovery interface. -->
+                        <a id="modal-tmdb-link" href="#" target="_blank" class="block w-full text-center bg-accent hover:bg-red-700 text-white font-bold py-3 rounded-lg transition mb-2">
+                            <i class="fa-brands fa-youtube mr-2"></i> Watch Trailer / Info
+                        </a>
+                        <button id="modal-watchlist-btn" class="w-full border border-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded-lg transition">
+                            <i class="fa-solid fa-plus mr-2"></i> Add to Watchlist
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Logic & State ---
+        const IMG_PATH = 'https://image.tmdb.org/t/p/w500';
+        const IMG_HERO_PATH = 'https://image.tmdb.org/t/p/original';
+        let apiKey = localStorage.getItem('tmdb_api_key');
+        let watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
+        let currentHeroMovie = null;
+
+        // User Preferences
+        let userGenre = localStorage.getItem('pref_genre') || '28'; // Default Action
+        let userSort = localStorage.getItem('pref_sort') || 'popularity.desc';
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateWatchlistCount();
+            
+            // Mouse Spotlight Logic
+            document.body.addEventListener('mousemove', e => {
+                const x = e.clientX;
+                const y = e.clientY;
+                document.getElementById('spotlight').style.setProperty('--x', x + 'px');
+                document.getElementById('spotlight').style.setProperty('--y', y + 'px');
+            });
+
+            // Initialize select boxes
+            document.getElementById('genre-select').value = userGenre;
+            document.getElementById('sort-select').value = userSort;
+
+            if (!apiKey) {
+                document.getElementById('api-modal').classList.remove('hidden');
+            } else {
+                initApp();
+            }
+
+            // Search Listener
+            document.getElementById('search-input').addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    searchMovies(e.target.value);
+                }
+            });
+        });
+
+        function saveApiKey() {
+            const input = document.getElementById('api-input').value;
+            if (input) {
+                localStorage.setItem('tmdb_api_key', input);
+                apiKey = input;
+                document.getElementById('api-modal').classList.add('hidden');
+                initApp();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('tmdb_api_key');
+            location.reload();
+        }
+
+        function savePreferences() {
+            userGenre = document.getElementById('genre-select').value;
+            userSort = document.getElementById('sort-select').value;
+            localStorage.setItem('pref_genre', userGenre);
+            localStorage.setItem('pref_sort', userSort);
+            
+            // Reload recommendations
+            fetchMovies(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${userGenre}&sort_by=${userSort}`, 'recommended-row');
+        }
+
+        async function initApp() {
+            // 1. Load Trending
+            const trending = await fetchMovies(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}`, 'trending-row');
+            
+            // 2. Set Hero to first trending
+            if (trending && trending.length > 0) {
+                setHero(trending[0]);
+            }
+
+            // 3. Load Recommended (Personalized)
+            fetchMovies(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${userGenre}&sort_by=${userSort}`, 'recommended-row');
+
+            // 4. Load Top Rated
+            fetchMovies(`https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&language=en-US&page=1`, 'top-rated-row');
+        }
+
+        function setHero(movie) {
+            currentHeroMovie = movie;
+            document.getElementById('hero-img').src = IMG_HERO_PATH + movie.backdrop_path;
+            document.getElementById('hero-title').innerText = movie.title;
+            document.getElementById('hero-desc').innerText = movie.overview;
+        }
+
+        async function fetchMovies(url, containerId) {
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                const container = document.getElementById(containerId);
+                container.innerHTML = ''; // Clear existing
+
+                data.results.forEach(movie => {
+                    if(movie.poster_path) {
+                        const card = createMovieCard(movie);
+                        container.appendChild(card);
+                    }
+                });
+                return data.results;
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        async function searchMovies(query) {
+            if(!query) return;
+            const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`;
+            // For simplicity, we just replace the Trending Row title and content with search results
+            document.querySelector('#trending-row').previousElementSibling.innerText = `Results for "${query}"`;
+            fetchMovies(url, 'trending-row');
+            // Scroll to it
+            document.getElementById('trending-row').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function createMovieCard(movie) {
+            const div = document.createElement('div');
+            div.className = 'movie-card flex-none w-32 md:w-48 cursor-pointer relative group';
+            div.onclick = () => openDetails(movie);
+
+            div.innerHTML = `
+                <div class="rounded-lg overflow-hidden relative shadow-lg bg-card h-48 md:h-72">
+                    <img src="${IMG_PATH + movie.poster_path}" alt="${movie.title}" class="poster-img w-full h-full object-cover" onload="this.classList.add('loaded')">
+                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <i class="fa-solid fa-circle-info text-3xl text-white"></i>
+                    </div>
+                </div>
+                <h3 class="mt-2 text-sm font-medium truncate text-gray-300 group-hover:text-white">${movie.title}</h3>
+                <div class="flex items-center text-xs text-gray-500 mt-1">
+                    <i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${movie.vote_average.toFixed(1)}
+                </div>
+            `;
+            return div;
+        }
+
+        // --- Modals & Views ---
+
+        function openDetails(movie) {
+            const modal = document.getElementById('details-modal');
+            document.getElementById('modal-img').src = movie.backdrop_path ? IMG_HERO_PATH + movie.backdrop_path : IMG_PATH + movie.poster_path;
+            document.getElementById('modal-title').innerText = movie.title;
+            document.getElementById('modal-date').innerText = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+            document.getElementById('modal-rate').innerText = movie.vote_average.toFixed(1);
+            document.getElementById('modal-desc').innerText = movie.overview;
+            
+            // Link to TMDB page (Simulates "Play" source)
+            document.getElementById('modal-tmdb-link').href = `https://www.themoviedb.org/movie/${movie.id}`;
+
+            // Watchlist Button State
+            const wlBtn = document.getElementById('modal-watchlist-btn');
+            const inList = watchlist.some(m => m.id === movie.id);
+            updateWatchlistBtnUI(wlBtn, inList);
+            
+            wlBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleMovieInWatchlist(movie, wlBtn);
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeDetails() {
+            document.getElementById('details-modal').classList.add('hidden');
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            const panel = document.getElementById('settings-panel');
+            
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => panel.classList.remove('translate-x-full'), 10);
+            } else {
+                panel.classList.add('translate-x-full');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        // --- Watchlist Logic ---
+
+        function toggleWatchlist() {
+            const container = document.getElementById('content-container');
+            const hero = document.getElementById('hero-section');
+            const wlView = document.getElementById('watchlist-view');
+            
+            if (wlView.classList.contains('hidden')) {
+                // Show Watchlist
+                container.classList.add('hidden');
+                hero.classList.add('hidden');
+                wlView.classList.remove('hidden');
+                renderWatchlist();
+            } else {
+                // Show Home
+                loadHome();
+            }
+        }
+
+        function loadHome() {
+            document.getElementById('content-container').classList.remove('hidden');
+            document.getElementById('hero-section').classList.remove('hidden');
+            document.getElementById('watchlist-view').classList.add('hidden');
+        }
+
+        function addToWatchlistFromHero() {
+            if (currentHeroMovie) {
+                const exists = watchlist.some(m => m.id === currentHeroMovie.id);
+                if (!exists) {
+                    watchlist.push(currentHeroMovie);
+                    localStorage.setItem('watchlist', JSON.stringify(watchlist));
+                    updateWatchlistCount();
+                    alert("Added to watchlist!");
+                } else {
+                    alert("Already in watchlist.");
+                }
+            }
+        }
+
+        function toggleMovieInWatchlist(movie, btnElement) {
+            const index = watchlist.findIndex(m => m.id === movie.id);
+            if (index === -1) {
+                watchlist.push(movie);
+                updateWatchlistBtnUI(btnElement, true);
+            } else {
+                watchlist.splice(index, 1);
+                updateWatchlistBtnUI(btn
