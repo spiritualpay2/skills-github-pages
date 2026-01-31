@@ -95,7 +95,7 @@
     let currentItem = null;
 
     async function fetchTMDB(endpoint) {
-      const url = `https://api.themoviedb.org/3${endpoint}?api_key=${api_key}`;
+      const url = `https://api.themoviedb.org/3${endpoint}?api_key=${TMBD_KEY}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('TMDB request failed');
       return (await res.json());
