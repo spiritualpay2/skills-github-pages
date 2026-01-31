@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CineStream</title>
+  <title>CinemaOS Streamer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,7 +21,7 @@
   <div class="container mx-auto px-4 py-8 max-w-7xl">
     <!-- Header -->
     <header class="flex flex-col md:flex-row justify-between items-center mb-10">
-      <h1 class="text-4xl font-bold text-primary mb-4 md:mb-0">CineStream</h1>
+      <h1 class="text-4xl font-bold text-primary mb-4 md:mb-0">CinemaOS Streamer</h1>
       <div class="w-full md:w-96">
         <div class="relative">
           <input 
@@ -95,7 +95,7 @@
     let currentItem = null;
 
     async function fetchTMDB(endpoint) {
-      const url = `https://api.themoviedb.org/3${endpoint}?api_key=${TMBD_KEY}`;
+      const url = `https://api.themoviedb.org/3${endpoint}?api_key=${TMDB_KEY}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('TMDB request failed');
       return (await res.json());
