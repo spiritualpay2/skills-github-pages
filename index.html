@@ -1,102 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streaming Web App</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 20px; }
-        #search { padding: 10px; width: 300px; }
-        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        #results { margin-top: 20px; }
-        .result { background: white; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; cursor: pointer; }
-        .result:hover { background-color: #e9e9e9; }
-        #player { margin-top: 20px; text-align: center; }
-        #tv-controls { display: none; margin-top: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CineStream</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { primary: '#e11d48' } } }
+    }
+  </script>
+  <style>
+    body { background-color: #0f172a; color: #e2e8f0; }
+    .card { transition: all 0.3s; }
+    .card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.4); }
+  </style>
 </head>
-<body>
-    <h1>Streaming Web App</h1>
-    <input id="search" type="text" placeholder="Search movies or TV shows...">
-    <button onclick="searchContent()">Search</button>
-    <div id="results"></div>
-    <div id="tv-controls">
-        <label>Season: <input id="season" type="number" min="1" value="1"></label>
-        <label>Episode: <input id="episode" type="number" min="1" value="1"></label>
-        <button onclick="loadTvEmbed()">Load Episode</button>
+<body class="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
+  <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-center mb-10">
+      <h1 class="text-4xl font-bold text-primary mb-4 md:mb-0">CineStream</h1>
+      <div class="w-full md:w-96">
+        <div class="relative">
+          <input 
+            id="searchInput" 
+            type="text" 
+            placeholder="Search movies or TV shows..." 
+            class="w-full px-5 py-3 bg-slate-800 border border-slate-700 rounded-full text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            onkeypress="if(event.key === 'Enter') searchContent()"
+          />
+          <button 
+            onclick="searchContent()" 
+            id="searchBtn"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-rose-700 text-white px-5 py-2 rounded-full font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Loading spinner -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="animate-spin inline-block w-12 h-12 border-4 border-t-primary border-slate-700 rounded-full"></div>
+      <p class="mt-4 text-slate-400">Loading...</p>
     </div>
-    <div id="player"></div>
 
-    <script>
-        const tmdbApiKey = 'a6fd5406ea0d474140ef452ba60760b0'; // Replace with your TMDB API key
-        let currentItem = null;
-        let currentImdbId = null;
+    <!-- Results / Home sections -->
+    <div id="content" class="space-y-12">
+      <section id="home" class="space-y-8">
+        <h2 class="text-3xl font-semibold">Popular Movies</h2>
+        <div id="popularMovies" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
 
-        async function searchContent() {
-            const query = document.getElementById('search').value;
-            if (!query) return;
-            const url = `https://api.themoviedb.org/3/search/multi?api_key=${tmdbApiKey}&query=${encodeURIComponent(query)}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                displayResults(data.results);
-            } catch (error) {
-                console.error('Error searching:', error);
-            }
-        }
+        <h2 class="text-3xl font-semibold">Popular TV Shows</h2>
+        <div id="popularTv" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      </section>
 
-        function displayResults(results) {
-            const container = document.getElementById('results');
-            container.innerHTML = '';
-            results.forEach(item => {
-                if (item.media_type === 'movie' || item.media_type === 'tv') {
-                    const div = document.createElement('div');
-                    div.className = 'result';
-                    div.innerHTML = `<h3>${item.title || item.name} (${item.media_type.toUpperCase()})</h3><p>${item.overview.substring(0, 150)}...</p>`;
-                    div.onclick = () => selectContent(item);
-                    container.appendChild(div);
-                }
-            });
-        }
+      <section id="resultsSection" class="hidden space-y-8">
+        <div class="flex items-center justify-between">
+          <h2 id="resultsTitle" class="text-3xl font-semibold">Search Results</h2>
+          <button onclick="showHome()" class="text-primary hover:underline">← Back to Home</button>
+        </div>
+        <div id="results" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+      </section>
 
-        async function selectContent(item) {
-            currentItem = item;
-            const type = item.media_type;
-            const id = item.id;
-            const url = `https://api.themoviedb.org/3/${type}/${id}?api_key=${tmdbApiKey}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                currentImdbId = data.imdb_id;
-                if (type === 'movie') {
-                    document.getElementById('tv-controls').style.display = 'none';
-                    loadEmbed();
-                } else if (type === 'tv') {
-                    document.getElementById('tv-controls').style.display = 'block';
-                    loadEmbed(); // Load default s1 e1
-                }
-            } catch (error) {
-                console.error('Error fetching details:', error);
-            }
-        }
+      <!-- Player -->
+      <section id="playerSection" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="playerTitle" class="text-3xl font-semibold"></h2>
+          <button onclick="closePlayer()" class="bg-slate-700 hover:bg-slate-600 px-5 py-2 rounded-full transition">← Back</button>
+        </div>
+        <div id="tvControls" class="hidden flex flex-wrap gap-4 mb-6">
+          <div>
+            <label class="block text-sm text-slate-400 mb-1">Season</label>
+            <input id="seasonInput" type="number" min="1" value="1" class="w-20 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"/>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-400 mb-1">Episode</label>
+            <input id="episodeInput" type="number" min="1" value="1" class="w-20 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"/>
+          </div>
+          <button onclick="loadTvEpisode()" class="self-end bg-primary hover:bg-rose-700 px-6 py-2 rounded-full font-medium transition">Load Episode</button>
+        </div>
+        <div class="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+          <iframe id="playerFrame" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </section>
+    </div>
+  </div>
 
-        function loadTvEmbed() {
-            loadEmbed();
-        }
+  <script>
+    const TMDB_KEY = 'YOUR_TMDB_API_KEY'; // ← Replace here
+    let currentItem = null;
 
-        function loadEmbed() {
-            const player = document.getElementById('player');
-            let embedUrl;
-            if (currentItem.media_type === 'movie') {
-                embedUrl = `https://player.autoembed.cc/embed/movie/${currentImdbId}`;
-            } else if (currentItem.media_type === 'tv') {
-                const season = document.getElementById('season').value || 1;
-                const episode = document.getElementById('episode').value || 1;
-                embedUrl = `https://player.autoembed.cc/embed/tv/${currentImdbId}/${season}/${episode}`;
-            }
-            player.innerHTML = `<iframe width="800" height="450" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
-        }
-    </script>
+    async function fetchTMDB(endpoint) {
+      const url = `https://api.themoviedb.org/3${endpoint}?api_key=${a6fd5406ea0d474140ef452ba60760b0}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('TMDB request failed');
+      return (await res.json());
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading').classList.toggle('hidden', !show);
+    }
+
+    function showHome() {
+      document.getElementById('home').classList.remove('hidden');
+      document.getElementById('resultsSection').classList.add('hidden');
+      document.getElementById('playerSection').classList.add('hidden');
+    }
+
+    function showResults() {
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('resultsSection').classList.remove('hidden');
+      document.getElementById('playerSection').classList.add('hidden');
+    }
+
+    function showPlayer(title, isTv = false) {
+      document.getElementById('playerTitle').textContent = title;
+      document.getElementById('tvControls').classList.toggle('hidden', !isTv);
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('resultsSection').classList.add('hidden');
+      document.getElementById('playerSection').classList.remove('hidden');
+    }
+
+    function renderPoster(item, container) {
+      const poster = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Poster';
+      const div = document.createElement('div');
+      div.className = 'card cursor-pointer overflow-hidden rounded-xl bg-slate-800 shadow-lg';
+      div.innerHTML = `
+        <img src="${poster}" alt="${item.title || item.name}" class="w-full aspect-[2/3] object-cover"/>
+        <div class="p-3">
+          <h3 class="font-semibold truncate">${item.title || item.name}</h3>
+          <p class="text-sm text-slate-400">${(item.release_date || item.first_air_date || '').slice(0,4) || 'N/A'}</p>
+        </div>
+      `;
+      div.onclick = () => selectItem(item);
+      container.appendChild(div);
+    }
+
+    async function loadHome() {
+      try {
+        showLoading(true);
+        const [movies, tv] = await Promise.all([
+          fetchTMDB('/movie/popular'),
+          fetchTMDB('/tv/popular')
+        ]);
+
+        const moviesEl = document.getElementById('popularMovies');
+        const tvEl = document.getElementById('popularTv');
+        moviesEl.innerHTML = ''; tvEl.innerHTML = '';
+
+        movies.results.slice(0,10).forEach(m => renderPoster(m, moviesEl));
+        tv.results.slice(0,10).forEach(t => renderPoster(t, tvEl));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function searchContent() {
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) return;
+
+      const btn = document.getElementById('searchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+      showLoading(true);
+
+      try {
+        const data = await fetchTMDB(`/search/multi?query=${encodeURIComponent(query)}`);
+        const resultsEl = document.getElementById('results');
+        resultsEl.innerHTML = '';
+        document.getElementById('resultsTitle').textContent = `Results for "${query}"`;
+
+        data.results
+          .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
+          .slice(0, 20)
+          .forEach(item => renderPoster(item, resultsEl));
+
+        showResults();
+      } catch (err) {
+        alert('Search failed. Check console or API key.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Search';
+        showLoading(false);
+      }
+    }
+
+    async function selectItem(item) {
+      currentItem = item;
+      const type = item.media_type;
+      const title = item.title || item.name;
+      const id = item.id;
+
+      showPlayer(title, type === 'tv');
+
+      let embedUrl = `https://cinemasos.tech/player/${id}`;
+
+      if (type === 'tv') {
+        // Default season 1 episode 1
+        document.getElementById('seasonInput').value = 1;
+        document.getElementById('episodeInput').value = 1;
+        embedUrl += '/1/1';
+      }
+
+      document.getElementById('playerFrame').src = embedUrl;
+    }
+
+    function loadTvEpisode() {
+      if (!currentItem || currentItem.media_type !== 'tv') return;
+      const season = document.getElementById('seasonInput').value || 1;
+      const episode = document.getElementById('episodeInput').value || 1;
+      const embedUrl = `https://cinemasos.tech/player/${currentItem.id}/${season}/${episode}`;
+      document.getElementById('playerFrame').src = embedUrl;
+    }
+
+    function closePlayer() {
+      document.getElementById('playerFrame').src = '';
+      showHome();
+      currentItem = null;
+    }
+
+    // Initial load
+    loadHome();
+  </script>
 </body>
 </html>
