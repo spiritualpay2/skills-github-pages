@@ -3,697 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamLite | Premium</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dark: '#0f1014',
-                        card: '#1e2029',
-                        accent: '#e50914',
-                        glass: 'rgba(30, 32, 41, 0.7)',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    },
-                    keyframes: {
-                        pop: {
-                            '0%': { transform: 'scale(0.95)' },
-                            '100%': { transform: 'scale(1)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <title>Streaming Web App</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        
-        body {
-            /* Deep, visually appealing gradient */
-            background: radial-gradient(circle at top left, #2b2d42, #1a1c29, #0f1014);
-            background-attachment: fixed;
-            color: #ffffff;
-            overflow-x: hidden;
-        }
-
-        /* Mouse Spotlight Effect - Subtle Glow */
-        #spotlight {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            pointer-events: none;
-            z-index: 0;
-            background: radial-gradient(800px circle at var(--x) var(--y), rgba(229, 9, 20, 0.06), transparent 40%);
-        }
-
-        /* Card Interactions */
-        .movie-card {
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        .movie-card:hover {
-            transform: scale(1.05) translateY(-5px);
-            z-index: 20;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Slide-up Info on Card */
-        .card-info {
-            transform: translateY(100%);
-            transition: transform 0.3s ease-in-out;
-        }
-        .movie-card:hover .card-info {
-            transform: translateY(0);
-        }
-
-        /* Button Pop Effect */
-        .btn-pop:active {
-            transform: scale(0.95);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #e50914; }
-
-        .hidden-scroll {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .hidden-scroll::-webkit-scrollbar { display: none; }
-
-        /* Loader */
-        .loader {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid #e50914;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 20px; }
+        #search { padding: 10px; width: 300px; }
+        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #results { margin-top: 20px; }
+        .result { background: white; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; cursor: pointer; }
+        .result:hover { background-color: #e9e9e9; }
+        #player { margin-top: 20px; text-align: center; }
+        #tv-controls { display: none; margin-top: 10px; }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col font-sans">
-
-    <div id="spotlight"></div>
-
-    <!-- API Modal -->
-    <div id="api-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md hidden">
-        <div class="bg-card p-8 rounded-2xl max-w-md w-full border border-gray-700 shadow-2xl animate-[pop_0.3s_ease-out]">
-            <h2 class="text-2xl font-bold mb-4 text-accent"><i class="fa-solid fa-key mr-2"></i>Access Required</h2>
-            <p class="text-gray-300 mb-6 text-sm">Enter your TMDB API Key to unlock the library.</p>
-            <div id="api-error-msg" class="hidden text-red-400 text-xs mb-3"><i class="fa-solid fa-triangle-exclamation"></i> Invalid Key</div>
-            <input type="text" id="api-input" placeholder="TMDB API Key" class="w-full bg-dark/50 border border-gray-600 rounded-lg p-3 text-white focus:border-accent outline-none mb-4">
-            <button onclick="saveApiKey()" class="w-full bg-accent hover:bg-red-600 text-white font-bold py-3 rounded-lg transition btn-pop shadow-lg shadow-red-900/30">Enter App</button>
-            <a href="https://www.themoviedb.org/settings/api" target="_blank" class="block text-center mt-6 text-xs text-gray-500 hover:text-white">Get a free key here</a>
-        </div>
+<body>
+    <h1>Streaming Web App</h1>
+    <input id="search" type="text" placeholder="Search movies or TV shows...">
+    <button onclick="searchContent()">Search</button>
+    <div id="results"></div>
+    <div id="tv-controls">
+        <label>Season: <input id="season" type="number" min="1" value="1"></label>
+        <label>Episode: <input id="episode" type="number" min="1" value="1"></label>
+        <button onclick="loadTvEmbed()">Load Episode</button>
     </div>
-
-    <!-- Navigation & Search -->
-    <nav class="fixed top-0 w-full z-50 bg-gradient-to-b from-black/95 via-black/80 to-transparent pt-4 pb-6 px-6 md:px-12 flex justify-between items-start transition-all duration-300" id="navbar">
-        
-        <!-- Logo -->
-        <div class="flex items-center gap-2 cursor-pointer group mt-2" onclick="loadHome()">
-            <i class="fa-solid fa-play text-accent text-3xl group-hover:rotate-12 transition-transform duration-300"></i>
-            <span class="text-2xl font-extrabold tracking-tight text-white hidden md:block">Stream<span class="text-accent">Lite</span></span>
-        </div>
-        
-        <!-- CENTER: Search & Filters -->
-        <div class="relative w-full max-w-2xl mx-4 flex flex-col items-center">
-            <div class="flex w-full relative z-50">
-                <!-- Search Input -->
-                <div class="relative flex-grow group">
-                    <input type="text" id="search-input" placeholder="Find movies, shows..." 
-                        class="w-full bg-white/10 backdrop-blur-md border border-white/10 rounded-l-full py-3 pl-12 pr-4 text-sm focus:bg-card focus:border-accent focus:outline-none transition-all shadow-lg text-white">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400 group-focus-within:text-accent transition-colors"></i>
-                </div>
-                
-                <!-- Filter/Settings Toggle (Attached) -->
-                <button onclick="toggleSettings()" class="bg-white/10 backdrop-blur-md border-y border-r border-white/10 rounded-r-full px-6 hover:bg-white/20 hover:text-accent transition-colors btn-pop tooltip" title="Preferences">
-                    <i class="fa-solid fa-sliders"></i>
-                </button>
-            </div>
-
-            <!-- SEARCH DROPDOWN (Results Box) -->
-            <div id="search-dropdown" class="absolute top-14 w-full bg-card/95 backdrop-blur-xl border border-gray-700 rounded-xl shadow-2xl hidden overflow-hidden z-40 max-h-[70vh] flex flex-col">
-                <div class="p-3 border-b border-gray-700 text-xs text-gray-400 font-bold uppercase flex justify-between">
-                    <span>Top Results</span>
-                    <button onclick="closeSearch()" class="hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div id="search-results-list" class="overflow-y-auto p-2 space-y-2 custom-scroll">
-                    <!-- Results injected here -->
-                </div>
-                <div id="search-loading" class="hidden p-4 flex justify-center"><div class="loader"></div></div>
-            </div>
-        </div>
-        
-        <!-- Right: Watchlist -->
-        <button onclick="toggleWatchlist()" class="relative group mt-2 btn-pop">
-            <div class="bg-white/10 p-3 rounded-full hover:bg-accent transition-colors shadow-lg">
-                <i class="fa-solid fa-bookmark text-lg"></i>
-            </div>
-            <span id="watchlist-count" class="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-dark">0</span>
-        </button>
-    </nav>
-
-    <!-- Settings/Filter Sidebar (Slide in) -->
-    <div id="settings-modal" class="fixed inset-0 z-40 hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleSettings()"></div>
-        <div id="settings-panel" class="absolute right-0 top-20 w-72 bg-card border border-gray-700 rounded-l-2xl p-6 shadow-2xl transform translate-x-full transition-transform duration-300">
-            <h3 class="text-lg font-bold mb-4 border-b border-gray-700 pb-2">Discovery Options</h3>
-            
-            <div class="mb-5">
-                <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Genre</label>
-                <select id="genre-select" onchange="savePreferences()" class="w-full bg-dark/50 border border-gray-600 rounded p-2 text-sm text-white focus:border-accent outline-none">
-                    <option value="28">Action</option>
-                    <option value="12">Adventure</option>
-                    <option value="35">Comedy</option>
-                    <option value="18">Drama</option>
-                    <option value="27">Horror</option>
-                    <option value="878">Sci-Fi</option>
-                    <option value="53">Thriller</option>
-                </select>
-            </div>
-
-            <div class="mb-5">
-                <label class="text-xs text-gray-400 uppercase font-bold mb-2 block">Sort By</label>
-                <select id="sort-select" onchange="savePreferences()" class="w-full bg-dark/50 border border-gray-600 rounded p-2 text-sm text-white focus:border-accent outline-none">
-                    <option value="popularity.desc">Most Popular</option>
-                    <option value="vote_average.desc">Top Rated</option>
-                    <option value="primary_release_date.desc">Newest</option>
-                </select>
-            </div>
-
-            <button onclick="logout()" class="w-full text-red-400 text-sm hover:text-red-300 mt-4 border-t border-gray-700 pt-4"><i class="fa-solid fa-power-off mr-2"></i> Disconnect API</button>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <main class="flex-grow pt-28 pb-10 px-0 md:px-0 w-full space-y-12">
-        
-        <!-- HERO CAROUSEL SECTION -->
-        <div id="hero-section" class="relative h-[85vh] w-full bg-dark group transition-all duration-700">
-            <!-- Background -->
-            <div class="absolute inset-0">
-                <img id="hero-img" class="w-full h-full object-cover transition-opacity duration-500 opacity-60" src="" alt="">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#0f1014] via-[#0f1014]/40 to-transparent"></div>
-                <div class="absolute inset-0 bg-gradient-to-r from-[#0f1014] via-[#0f1014]/60 to-transparent"></div>
-            </div>
-
-            <!-- Hero Info -->
-            <div class="absolute top-1/3 left-6 md:left-16 max-w-3xl z-10 pr-6">
-                <div id="hero-loading" class="flex items-center gap-3"><div class="loader"></div> <span class="text-gray-400">Loading library...</span></div>
-                
-                <div id="hero-content" class="hidden animate-[pop_0.5s_ease-out]">
-                    <h1 id="hero-title" class="text-4xl md:text-7xl font-extrabold mb-4 leading-tight drop-shadow-2xl"></h1>
-                    <div class="flex items-center gap-4 text-sm md:text-base font-semibold text-gray-200 mb-6">
-                        <span id="hero-rating" class="text-green-400 border border-green-400 px-2 py-0.5 rounded"></span>
-                        <span id="hero-year"></span>
-                        <span class="flex items-center gap-1 text-yellow-500"><i class="fa-solid fa-star"></i> <span id="hero-score"></span></span>
-                    </div>
-                    <p id="hero-desc" class="text-gray-300 text-lg mb-8 line-clamp-3 md:line-clamp-2 drop-shadow-md max-w-2xl leading-relaxed"></p>
-                    
-                    <div class="flex gap-4">
-                        <button onclick="playMovie()" class="bg-accent hover:bg-red-700 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-3 transition-all btn-pop shadow-[0_0_20px_rgba(229,9,20,0.5)]">
-                            <i class="fa-solid fa-play"></i> View Details
-                        </button>
-                        <button onclick="addToWatchlistFromHero()" class="bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-3 transition-all btn-pop">
-                            <i class="fa-solid fa-plus"></i> Watchlist
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CAROUSEL THUMBNAILS (Bottom) -->
-            <div class="absolute bottom-0 w-full p-6 md:p-10 z-20 bg-gradient-to-t from-dark to-transparent">
-                <h3 class="text-gray-400 text-xs font-bold uppercase mb-3 ml-1 tracking-widest">Trending Today</h3>
-                <div id="hero-carousel" class="flex gap-4 overflow-x-auto hidden-scroll pb-2">
-                    <!-- Thumbnails injected here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- ROWS CONTAINER -->
-        <div id="content-container" class="px-6 md:px-16 space-y-12 opacity-0 transition-opacity duration-1000">
-            
-            <!-- Recommendations -->
-            <div>
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-1 h-8 bg-accent rounded-full"></div>
-                    <h2 class="text-2xl font-bold text-white tracking-wide">For You</h2>
-                </div>
-                <div id="recommended-row" class="flex gap-5 overflow-x-auto hidden-scroll py-4 px-2"></div>
-            </div>
-            
-            <!-- Top Rated -->
-            <div>
-                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-1 h-8 bg-blue-500 rounded-full"></div>
-                    <h2 class="text-2xl font-bold text-white tracking-wide">Critically Acclaimed</h2>
-                </div>
-                <div id="top-rated-row" class="flex gap-5 overflow-x-auto hidden-scroll py-4 px-2"></div>
-            </div>
-        </div>
-
-        <!-- WATCHLIST VIEW -->
-        <div id="watchlist-view" class="hidden px-6 md:px-16 pt-10 min-h-[60vh]">
-            <h2 class="text-4xl font-bold mb-10 flex items-center gap-3"><i class="fa-solid fa-bookmark text-accent"></i> My Library</h2>
-            <div id="watchlist-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8"></div>
-            
-            <div id="empty-watchlist" class="hidden flex flex-col items-center justify-center py-20 opacity-50">
-                <i class="fa-regular fa-folder-open text-6xl mb-4"></i>
-                <p class="text-xl">Your library is empty.</p>
-            </div>
-        </div>
-    </main>
-
-    <!-- EXPANDED DETAILS MODAL -->
-    <div id="details-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md hidden p-4 opacity-0 transition-opacity duration-300">
-        <div class="relative w-full max-w-6xl bg-[#15161c] rounded-3xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col md:flex-row h-[90vh] md:h-[80vh]">
-            
-            <button onclick="closeDetails()" class="absolute top-4 right-4 z-50 bg-black/40 hover:bg-accent text-white rounded-full p-3 transition btn-pop backdrop-blur">
-                <i class="fa-solid fa-xmark text-xl w-6 h-6 flex items-center justify-center"></i>
-            </button>
-
-            <!-- Left: Poster -->
-            <div class="md:w-1/3 h-64 md:h-full relative shrink-0">
-                <img id="modal-img" src="" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#15161c] to-transparent md:bg-gradient-to-r"></div>
-            </div>
-
-            <!-- Right: Info -->
-            <div class="md:w-2/3 p-8 md:p-12 overflow-y-auto flex flex-col">
-                <div class="mb-2">
-                    <h2 id="modal-title" class="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-2"></h2>
-                    <p id="modal-tagline" class="text-gray-400 italic text-lg mb-4"></p>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-4 mb-6">
-                    <span id="modal-rating" class="text-green-400 font-bold border border-green-400 px-2 py-0.5 rounded text-sm"></span>
-                    <span id="modal-date" class="text-gray-300"></span>
-                    <span id="modal-runtime" class="text-gray-300"><i class="fa-regular fa-clock mr-1"></i> <span></span></span>
-                    <div id="modal-genres" class="flex gap-2"></div>
-                </div>
-
-                <p id="modal-desc" class="text-gray-300 text-lg leading-relaxed mb-8 font-light"></p>
-
-                <div class="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <a id="modal-tmdb-link" href="#" target="_blank" class="bg-accent hover:bg-red-600 text-white font-bold py-4 rounded-xl text-center transition btn-pop shadow-lg shadow-red-900/20">
-                        <i class="fa-brands fa-youtube mr-2"></i> Watch Trailer / Stream
-                    </a>
-                    <button id="modal-watchlist-btn" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 rounded-xl transition btn-pop border border-gray-700">
-                        Add to Watchlist
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div id="player"></div>
 
     <script>
-        const IMG_PATH = 'https://image.tmdb.org/t/p/w500';
-        const IMG_HERO_PATH = 'https://image.tmdb.org/t/p/original';
-        
-        let apiKey = localStorage.getItem('tmdb_api_key');
-        let watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
-        let currentHeroMovie = null;
-        let userGenre = localStorage.getItem('pref_genre') || '28';
-        let userSort = localStorage.getItem('pref_sort') || 'popularity.desc';
-        let searchTimeout = null;
+        const tmdbApiKey = 'YOUR_TMDB_API_KEY'; // Replace with your TMDB API key
+        let currentItem = null;
+        let currentImdbId = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateWatchlistCount();
-            
-            // Spotlight
-            document.body.addEventListener('mousemove', e => {
-                document.getElementById('spotlight').style.setProperty('--x', e.clientX + 'px');
-                document.getElementById('spotlight').style.setProperty('--y', e.clientY + 'px');
-            });
-
-            // Search Logic
-            const searchInput = document.getElementById('search-input');
-            searchInput.addEventListener('input', handleSearchInput);
-            
-            // Close search on outside click
-            window.addEventListener('click', (e) => {
-                const searchBox = document.getElementById('search-dropdown');
-                const searchBar = document.getElementById('search-input');
-                if (!searchBox.contains(e.target) && e.target !== searchBar) {
-                    closeSearch();
-                }
-            });
-
-            // Set Prefs
-            document.getElementById('genre-select').value = userGenre;
-            document.getElementById('sort-select').value = userSort;
-
-            if (!apiKey) {
-                document.getElementById('api-modal').classList.remove('hidden');
-            } else {
-                initApp();
-            }
-        });
-
-        // --- Core ---
-
-        function saveApiKey() {
-            const input = document.getElementById('api-input').value.trim();
-            if (input.length > 10) {
-                localStorage.setItem('tmdb_api_key', input);
-                apiKey = input;
-                document.getElementById('api-modal').classList.add('hidden');
-                initApp();
-            } else {
-                document.getElementById('api-error-msg').classList.remove('hidden');
-            }
-        }
-
-        async function initApp() {
-            // 1. Get Trending for Carousel
-            const trending = await fetchMovies(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}`);
-            
-            if (trending && trending.length > 0) {
-                setupHeroCarousel(trending.slice(0, 10)); // Top 10 for carousel
-                setHero(trending[0]);
-            }
-
-            // 2. Rows
-            const rec = await fetchMovies(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${userGenre}&sort_by=${userSort}`);
-            renderRow(rec, 'recommended-row');
-
-            const top = await fetchMovies(`https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`);
-            renderRow(top, 'top-rated-row');
-
-            document.getElementById('content-container').classList.remove('opacity-0');
-        }
-
-        async function fetchMovies(url) {
+        async function searchContent() {
+            const query = document.getElementById('search').value;
+            if (!query) return;
+            const url = `https://api.themoviedb.org/3/search/multi?api_key=${tmdbApiKey}&query=${encodeURIComponent(query)}`;
             try {
-                const res = await fetch(url);
-                const data = await res.json();
-                return data.results || [];
-            } catch (e) { console.error(e); return []; }
-        }
-
-        // --- Hero & Carousel ---
-
-        function setupHeroCarousel(movies) {
-            const container = document.getElementById('hero-carousel');
-            container.innerHTML = '';
-            
-            movies.forEach(movie => {
-                const thumb = document.createElement('div');
-                thumb.className = 'flex-none w-32 h-20 rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-accent hover:scale-105 transition-all opacity-70 hover:opacity-100 relative';
-                thumb.innerHTML = `<img src="${IMG_PATH + movie.backdrop_path}" class="w-full h-full object-cover">`;
-                thumb.onclick = () => setHero(movie);
-                container.appendChild(thumb);
-            });
-        }
-
-        function setHero(movie) {
-            currentHeroMovie = movie;
-            const img = document.getElementById('hero-img');
-            const content = document.getElementById('hero-content');
-            
-            // Fade out
-            img.classList.add('opacity-0');
-            
-            const temp = new Image();
-            temp.src = IMG_HERO_PATH + movie.backdrop_path;
-            temp.onload = () => {
-                img.src = temp.src;
-                img.classList.remove('opacity-0');
-                
-                document.getElementById('hero-loading').classList.add('hidden');
-                content.classList.remove('hidden');
-                
-                document.getElementById('hero-title').innerText = movie.title;
-                document.getElementById('hero-desc').innerText = movie.overview;
-                document.getElementById('hero-rating').innerText = movie.vote_average.toFixed(1);
-                document.getElementById('hero-score').innerText = movie.vote_count;
-                document.getElementById('hero-year').innerText = movie.release_date.split('-')[0];
-            };
-        }
-
-        // --- Search Dropdown ---
-
-        function handleSearchInput(e) {
-            clearTimeout(searchTimeout);
-            const query = e.target.value;
-            const dropdown = document.getElementById('search-dropdown');
-            const loader = document.getElementById('search-loading');
-            const list = document.getElementById('search-results-list');
-
-            if (query.length < 2) {
-                dropdown.classList.add('hidden');
-                return;
+                const response = await fetch(url);
+                const data = await response.json();
+                displayResults(data.results);
+            } catch (error) {
+                console.error('Error searching:', error);
             }
-
-            dropdown.classList.remove('hidden');
-            loader.classList.remove('hidden');
-            list.innerHTML = '';
-
-            searchTimeout = setTimeout(async () => {
-                const results = await fetchMovies(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`);
-                loader.classList.add('hidden');
-                
-                if (results.length === 0) {
-                    list.innerHTML = '<div class="p-4 text-gray-500 text-center">No results found</div>';
-                    return;
-                }
-
-                results.slice(0, 5).forEach(movie => {
-                    const item = document.createElement('div');
-                    item.className = 'flex gap-3 p-2 hover:bg-white/10 rounded-lg cursor-pointer transition items-center';
-                    item.onclick = () => {
-                        openDetails(movie);
-                        closeSearch();
-                    };
-                    item.innerHTML = `
-                        <img src="${movie.poster_path ? IMG_PATH + movie.poster_path : 'https://via.placeholder.com/50'}" class="w-12 h-16 object-cover rounded">
-                        <div>
-                            <h4 class="font-bold text-sm text-white">${movie.title}</h4>
-                            <span class="text-xs text-gray-400">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'}</span>
-                        </div>
-                    `;
-                    list.appendChild(item);
-                });
-            }, 500);
         }
 
-        function closeSearch() {
-            document.getElementById('search-dropdown').classList.add('hidden');
-            document.getElementById('search-input').value = '';
-        }
-
-        // --- Cards & Interaction ---
-
-        function renderRow(movies, containerId) {
-            const container = document.getElementById(containerId);
+        function displayResults(results) {
+            const container = document.getElementById('results');
             container.innerHTML = '';
-            movies.forEach(movie => {
-                if(movie.poster_path) container.appendChild(createLargeCard(movie));
+            results.forEach(item => {
+                if (item.media_type === 'movie' || item.media_type === 'tv') {
+                    const div = document.createElement('div');
+                    div.className = 'result';
+                    div.innerHTML = `<h3>${item.title || item.name} (${item.media_type.toUpperCase()})</h3><p>${item.overview.substring(0, 150)}...</p>`;
+                    div.onclick = () => selectContent(item);
+                    container.appendChild(div);
+                }
             });
         }
 
-        function createLargeCard(movie) {
-            const div = document.createElement('div');
-            // Larger width (w-60), relative for slide-up info
-            div.className = 'movie-card flex-none w-60 aspect-[2/3] rounded-xl overflow-hidden relative cursor-pointer group bg-card border border-gray-800';
-            div.onclick = () => openDetails(movie);
-
-            div.innerHTML = `
-                <img src="${IMG_PATH + movie.poster_path}" class="w-full h-full object-cover" loading="lazy">
-                
-                <!-- Slide Up Info -->
-                <div class="card-info absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 flex flex-col justify-end">
-                    <h3 class="font-bold text-white text-lg leading-tight mb-1">${movie.title}</h3>
-                    <div class="flex items-center justify-between text-sm text-gray-300">
-                        <span class="text-green-400 font-bold">${(movie.vote_average * 10).toFixed(0)}% Match</span>
-                        <span>${movie.release_date ? movie.release_date.split('-')[0] : ''}</span>
-                    </div>
-                    <button class="mt-3 w-full bg-white/20 hover:bg-accent text-white py-2 rounded font-bold text-xs transition uppercase tracking-wider">
-                        Info
-                    </button>
-                </div>
-            `;
-            return div;
-        }
-
-        // --- Advanced Details Modal ---
-
-        async function openDetails(movie) {
-            const modal = document.getElementById('details-modal');
-            modal.classList.remove('hidden');
-            // Small timeout for fade in transition
-            setTimeout(() => modal.classList.remove('opacity-0'), 10);
-
-            // Set basic info first (instant feedback)
-            document.getElementById('modal-img').src = movie.poster_path ? IMG_PATH + movie.poster_path : '';
-            document.getElementById('modal-title').innerText = movie.title;
-            document.getElementById('modal-desc').innerText = movie.overview;
-            document.getElementById('modal-rating').innerText = movie.vote_average.toFixed(1);
-            document.getElementById('modal-date').innerText = movie.release_date;
-            
-            // Watchlist button state
-            const wlBtn = document.getElementById('modal-watchlist-btn');
-            const inList = watchlist.some(m => m.id === movie.id);
-            updateWatchlistBtnUI(wlBtn, inList);
-            wlBtn.onclick = () => toggleMovieInWatchlist(movie, wlBtn);
-            
-            document.getElementById('modal-tmdb-link').href = `https://www.themoviedb.org/movie/${movie.id}`;
-
-            // Fetch EXTRA Details (Runtime, Genres, Tagline)
+        async function selectContent(item) {
+            currentItem = item;
+            const type = item.media_type;
+            const id = item.id;
+            const url = `https://api.themoviedb.org/3/${type}/${id}?api_key=${tmdbApiKey}`;
             try {
-                const res = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${apiKey}`);
-                const detailData = await res.json();
-                
-                document.getElementById('modal-tagline').innerText = detailData.tagline || '';
-                document.getElementById('modal-runtime').querySelector('span').innerText = detailData.runtime ? `${detailData.runtime} min` : '';
-                
-                const genreContainer = document.getElementById('modal-genres');
-                genreContainer.innerHTML = '';
-                if(detailData.genres) {
-                    detailData.genres.slice(0,3).forEach(g => {
-                        const badge = document.createElement('span');
-                        badge.className = 'bg-gray-700 text-xs px-2 py-1 rounded text-gray-300';
-                        badge.innerText = g.name;
-                        genreContainer.appendChild(badge);
-                    });
+                const response = await fetch(url);
+                const data = await response.json();
+                currentImdbId = data.imdb_id;
+                if (type === 'movie') {
+                    document.getElementById('tv-controls').style.display = 'none';
+                    loadEmbed();
+                } else if (type === 'tv') {
+                    document.getElementById('tv-controls').style.display = 'block';
+                    loadEmbed(); // Load default s1 e1
                 }
-            } catch(e) { console.log("Could not fetch extra details"); }
-        }
-
-        function closeDetails() {
-            const modal = document.getElementById('details-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        // --- Other Utils ---
-
-        function toggleSettings() {
-            const modal = document.getElementById('settings-modal');
-            const panel = document.getElementById('settings-panel');
-            
-            if(modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                setTimeout(() => panel.classList.remove('translate-x-full'), 10);
-            } else {
-                panel.classList.add('translate-x-full');
-                setTimeout(() => modal.classList.add('hidden'), 300);
+            } catch (error) {
+                console.error('Error fetching details:', error);
             }
         }
 
-        function savePreferences() {
-            userGenre = document.getElementById('genre-select').value;
-            userSort = document.getElementById('sort-select').value;
-            localStorage.setItem('pref_genre', userGenre);
-            localStorage.setItem('pref_sort', userSort);
-            initApp(); // Reload rows
+        function loadTvEmbed() {
+            loadEmbed();
         }
 
-        function toggleWatchlist() {
-            const view = document.getElementById('watchlist-view');
-            const content = document.getElementById('content-container');
-            const hero = document.getElementById('hero-section');
-            
-            if(view.classList.contains('hidden')) {
-                view.classList.remove('hidden');
-                content.classList.add('hidden');
-                hero.classList.add('hidden');
-                renderWatchlist();
-            } else {
-                loadHome();
+        function loadEmbed() {
+            const player = document.getElementById('player');
+            let embedUrl;
+            if (currentItem.media_type === 'movie') {
+                embedUrl = `https://player.autoembed.cc/embed/movie/${currentImdbId}`;
+            } else if (currentItem.media_type === 'tv') {
+                const season = document.getElementById('season').value || 1;
+                const episode = document.getElementById('episode').value || 1;
+                embedUrl = `https://player.autoembed.cc/embed/tv/${currentImdbId}/${season}/${episode}`;
             }
-        }
-
-        function loadHome() {
-            document.getElementById('watchlist-view').classList.add('hidden');
-            document.getElementById('content-container').classList.remove('hidden');
-            document.getElementById('hero-section').classList.remove('hidden');
-        }
-
-        function renderWatchlist() {
-            const grid = document.getElementById('watchlist-grid');
-            const empty = document.getElementById('empty-watchlist');
-            grid.innerHTML = '';
-            
-            if(watchlist.length === 0) {
-                empty.classList.remove('hidden');
-                return;
-            }
-            empty.classList.add('hidden');
-            watchlist.forEach(movie => grid.appendChild(createLargeCard(movie)));
-        }
-
-        function toggleMovieInWatchlist(movie, btn) {
-            const idx = watchlist.findIndex(m => m.id === movie.id);
-            if(idx === -1) {
-                watchlist.push(movie);
-                updateWatchlistBtnUI(btn, true);
-            } else {
-                watchlist.splice(idx, 1);
-                updateWatchlistBtnUI(btn, false);
-            }
-            localStorage.setItem('watchlist', JSON.stringify(watchlist));
-            updateWatchlistCount();
-            if(!document.getElementById('watchlist-view').classList.contains('hidden')) renderWatchlist();
-        }
-
-        function addToWatchlistFromHero() {
-            if(currentHeroMovie) {
-                const idx = watchlist.findIndex(m => m.id === currentHeroMovie.id);
-                if(idx === -1) {
-                    watchlist.push(currentHeroMovie);
-                    localStorage.setItem('watchlist', JSON.stringify(watchlist));
-                    updateWatchlistCount();
-                    // Feedback on button
-                    const btn = document.querySelector('#hero-content button:last-child');
-                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Added';
-                    btn.classList.replace('bg-white/10', 'bg-green-600');
-                    setTimeout(() => {
-                        btn.innerHTML = '<i class="fa-solid fa-plus"></i> Watchlist';
-                        btn.classList.replace('bg-green-600', 'bg-white/10');
-                    }, 2000);
-                }
-            }
-        }
-
-        function updateWatchlistBtnUI(btn, isAdded) {
-            if(isAdded) {
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> In Watchlist';
-                btn.classList.add('bg-green-600', 'border-transparent');
-                btn.classList.remove('bg-gray-800', 'hover:bg-gray-700');
-            } else {
-                btn.innerHTML = 'Add to Watchlist';
-                btn.classList.remove('bg-green-600', 'border-transparent');
-                btn.classList.add('bg-gray-800', 'hover:bg-gray-700');
-            }
-        }
-
-        function updateWatchlistCount() {
-            document.getElementById('watchlist-count').innerText = watchlist.length;
-        }
-
-        function logout() {
-            localStorage.removeItem('tmdb_api_key');
-            location.reload();
-        }
-        
-        function playMovie() {
-            if(currentHeroMovie) window.open(`https://www.themoviedb.org/movie/${currentHeroMovie.id}`, '_blank');
+            player.innerHTML = `<iframe width="800" height="450" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
         }
     </script>
 </body>
