@@ -91,11 +91,11 @@
   </div>
 
   <script>
-    const TMDB_KEY = 'YOUR_TMDB_API_KEY'; // ← Replace here
+    const TMDB_KEY = 'a6fd5406ea0d474140ef452ba60760b0'; // ← Replace here
     let currentItem = null;
 
     async function fetchTMDB(endpoint) {
-      const url = `https://api.themoviedb.org/3${endpoint}?api_key=${a6fd5406ea0d474140ef452ba60760b0}`;
+      const url = `https://api.themoviedb.org/3${endpoint}?api_key=${api_key}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('TMDB request failed');
       return (await res.json());
